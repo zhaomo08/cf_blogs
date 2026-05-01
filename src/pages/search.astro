@@ -1,5 +1,55 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('blog', ({ data }) => !data.draft);
+const sorted = [...posts].sort((a, b) => {
+  const aTs = a.data.date ? a.data.date.valueOf() : 0;
+  const bTs = b.data.date ? b.data.date.valueOf() : 0;
+  return bTs - aTs;
+});
+
+const postSummaries = sorted.map((post) => {
+  const [lang, ...rest] = post.id.split('/');
+  const slug = rest.join('/');
+  const dateLabel = post.data.date
+    ? post.data.date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })
+    : '';
+
+  return {
+    id: post.id,
+    lang,
+    title: post.data.title,
+    description: post.data.description ?? '',
+    tags: post.data.tags ?? [],
+    href: `/${lang}/blog/${slug}`,
+    dateLabel,
+  };
+});
+
+const tagCountMap = new Map<string, number>();
+for (const post of postSummaries) {
+  for (const rawTag of post.tags) {
+    const tag = String(rawTag || '').trim();
+    if (!tag) continue;
+    tagCountMap.set(tag, (tagCountMap.get(tag) ?? 0) + 1);
+  }
+}
+
+const maxTagCount = Math.max(...tagCountMap.values(), 1);
+const tagCloud = [...tagCountMap.entries()]
+  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+  .map(([tag, count], index) => {
+    const ratio = count / maxTagCount;
+    const jitter = [0.06, 0.02, -0.03, -0.06][index % 4];
+    const size = Math.max(0.92, Math.min(1.65, 0.95 + ratio * 0.65 + jitter));
+    const delay = (index % 7) * 0.18;
+    return { tag, count, size: Number(size.toFixed(2)), delay: Number(delay.toFixed(2)) };
+  });
 ---
 <BaseLayout title="搜索 / Search" description="搜索博客文章">
   <Fragment slot="head">
@@ -8,18 +58,263 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <main class="container">
     <h1>搜索 / Search</h1>
     <div id="search"></div>
+
+    <section class="tag-browser">
+      <div class="tag-browser-head">
+        <h2>标签 / Tags</h2>
+        <button id="clear-tag" class="clear-tag" hidden>清除筛选</button>
+      </div>
+      <div class="tag-cloud" id="tag-cloud">
+        {tagCloud.length === 0 ? (
+          <p class="empty">暂无标签 / No tags</p>
+        ) : (
+          tagCloud.map((item) => (
+            <button
+              type="button"
+              class="tag-float"
+              data-tag={item.tag}
+              style={`font-size:${item.size}rem;animation-delay:${item.delay}s;`}
+            >
+              <span>{item.tag}</span>
+              <small>{item.count}</small>
+            </button>
+          ))
+        )}
+      </div>
+    </section>
+
+    <section class="tag-results" id="tag-results" hidden>
+      <h2 id="tag-results-title"></h2>
+      <ul id="tag-results-list"></ul>
+      <p id="tag-results-empty" class="empty" hidden>该标签下暂无文章 / No posts under this tag</p>
+    </section>
   </main>
+
+  <script id="post-summaries" type="application/json">
+    {JSON.stringify(postSummaries)}
+  </script>
+
   <Fragment slot="scripts">
     <script is:inline src="/pagefind/pagefind-ui.js"></script>
     <script is:inline>
       window.addEventListener('DOMContentLoaded', function() {
-        new PagefindUI({ element: '#search', showImages: true, showEmptyFilters: false });
+        new PagefindUI({
+          element: '#search',
+          showImages: true,
+          showEmptyFilters: false,
+          highlightParam: 'highlight',
+        });
+
+        const postDataEl = document.getElementById('post-summaries');
+        const posts = postDataEl ? JSON.parse(postDataEl.textContent || '[]') : [];
+        const tagButtons = Array.from(document.querySelectorAll('.tag-float'));
+        const clearButton = document.getElementById('clear-tag');
+        const resultWrap = document.getElementById('tag-results');
+        const resultTitle = document.getElementById('tag-results-title');
+        const resultList = document.getElementById('tag-results-list');
+        const resultEmpty = document.getElementById('tag-results-empty');
+
+        function renderTagPosts(tag) {
+          const filtered = posts.filter((post) => (post.tags || []).includes(tag));
+          resultTitle.textContent = `#${tag} (${filtered.length})`;
+          resultList.innerHTML = '';
+
+          if (filtered.length === 0) {
+            resultEmpty.hidden = false;
+          } else {
+            resultEmpty.hidden = true;
+            filtered.forEach((post) => {
+              const li = document.createElement('li');
+              const link = document.createElement('a');
+              link.href = post.href;
+              link.textContent = post.title;
+              li.appendChild(link);
+
+              if (post.dateLabel) {
+                const meta = document.createElement('small');
+                meta.textContent = post.dateLabel;
+                li.appendChild(meta);
+              }
+
+              if (post.description) {
+                const desc = document.createElement('p');
+                desc.textContent = post.description;
+                li.appendChild(desc);
+              }
+
+              resultList.appendChild(li);
+            });
+          }
+
+          resultWrap.hidden = false;
+          clearButton.hidden = false;
+        }
+
+        function setActiveTag(tag) {
+          tagButtons.forEach((button) => {
+            const active = button.dataset.tag === tag;
+            button.classList.toggle('active', active);
+          });
+          renderTagPosts(tag);
+
+          const url = new URL(window.location.href);
+          url.searchParams.set('tag', tag);
+          window.history.replaceState({}, '', url);
+        }
+
+        function clearActiveTag() {
+          tagButtons.forEach((button) => button.classList.remove('active'));
+          resultWrap.hidden = true;
+          clearButton.hidden = true;
+
+          const url = new URL(window.location.href);
+          url.searchParams.delete('tag');
+          window.history.replaceState({}, '', url);
+        }
+
+        tagButtons.forEach((button) => {
+          button.addEventListener('click', () => {
+            const tag = button.dataset.tag || '';
+            if (!tag) return;
+            if (button.classList.contains('active')) {
+              clearActiveTag();
+              return;
+            }
+            setActiveTag(tag);
+          });
+        });
+
+        clearButton.addEventListener('click', clearActiveTag);
+
+        const initialTag = new URLSearchParams(window.location.search).get('tag');
+        if (initialTag && tagButtons.some((button) => button.dataset.tag === initialTag)) {
+          setActiveTag(initialTag);
+        }
       });
     </script>
   </Fragment>
 </BaseLayout>
 
 <style>
-  .container { max-width: var(--max-width); margin: 0 auto; padding: 2rem 1rem; }
-  h1 { margin-bottom: 1.5rem; }
+  .container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 2rem 1rem 3rem;
+  }
+  h1 {
+    margin-bottom: 1.5rem;
+  }
+  .tag-browser {
+    margin-top: 2rem;
+    padding: 1.1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-bg-secondary);
+  }
+  .tag-browser-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.9rem;
+  }
+  .tag-browser-head h2 {
+    margin: 0;
+    font-size: 1rem;
+  }
+  .clear-tag {
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text-muted);
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem;
+    cursor: pointer;
+    font-size: 0.82rem;
+  }
+  .clear-tag:hover {
+    color: var(--color-accent);
+  }
+  .tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem 0.7rem;
+  }
+  .tag-float {
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text);
+    border-radius: 999px;
+    padding: 0.34rem 0.72rem;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.42rem;
+    cursor: pointer;
+    animation: floatY 3.2s ease-in-out infinite;
+    transition: transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+  .tag-float:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+  .tag-float small {
+    font-size: 0.7em;
+    opacity: 0.75;
+  }
+  .tag-float.active {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  }
+  .tag-results {
+    margin-top: 1.3rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+  }
+  .tag-results h2 {
+    margin: 0 0 0.8rem;
+    font-size: 1rem;
+  }
+  .tag-results ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+  .tag-results li {
+    border: 1px solid var(--color-border);
+    border-radius: 9px;
+    padding: 0.78rem 0.9rem;
+    background: var(--color-bg-secondary);
+  }
+  .tag-results li a {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .tag-results li a:hover {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+  .tag-results li small {
+    display: block;
+    margin-top: 0.26rem;
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+  }
+  .tag-results li p {
+    margin: 0.4rem 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+  }
+  .empty {
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+  @keyframes floatY {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+    100% { transform: translateY(0); }
+  }
 </style>

@@ -49,7 +49,7 @@ const nextSlug = nextPost ? nextPost.id.split('/').slice(1).join('/') : null;
 
       {location && (
         <section class="post-location">
-          <h2 class="location-title">📍 {t(lang, 'post.location')}：{location.name}</h2>
+          <h2 class="location-title">{location.name}</h2>
           <div
             class="location-map"
             data-lat={String(location.lat)}
