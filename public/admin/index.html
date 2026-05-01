@@ -45,14 +45,30 @@
 
   <script>
     (function () {
-      function findMarkdownInput() {
-        const active = document.activeElement;
-        if (active && active.tagName === "TEXTAREA") return active;
-        const list = document.querySelectorAll("textarea");
-        return list.length ? list[list.length - 1] : null;
+      function isVisible(node) {
+        if (!node) return false;
+        const style = window.getComputedStyle(node);
+        return style.display !== "none" && style.visibility !== "hidden";
       }
 
-      function insertTextAtCursor(textarea, text) {
+      function findEditorTarget() {
+        const active = document.activeElement;
+        if (
+          active &&
+          isVisible(active) &&
+          (active.tagName === "TEXTAREA" || active.isContentEditable || active.getAttribute("role") === "textbox")
+        ) {
+          return active;
+        }
+
+        const candidates = Array.from(
+          document.querySelectorAll("textarea, [contenteditable='true'], [role='textbox']")
+        ).filter(isVisible);
+
+        return candidates.length ? candidates[candidates.length - 1] : null;
+      }
+
+      function insertIntoTextarea(textarea, text) {
         const start = textarea.selectionStart || 0;
         const end = textarea.selectionEnd || 0;
         const value = textarea.value || "";
@@ -62,6 +78,32 @@
         const pos = start + text.length;
         textarea.setSelectionRange(pos, pos);
         textarea.focus();
+        return true;
+      }
+
+      function insertIntoContentEditable(el, text) {
+        el.focus();
+        if (document.execCommand) {
+          const ok = document.execCommand("insertText", false, text);
+          if (ok) {
+            el.dispatchEvent(new Event("input", { bubbles: true }));
+            return true;
+          }
+        }
+        el.textContent = (el.textContent || "") + text;
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        return true;
+      }
+
+      function insertMarkdownToEditor(markdown) {
+        const target = findEditorTarget();
+        if (!target) return false;
+        const text = "\n" + markdown + "\n";
+
+        if (target.tagName === "TEXTAREA") {
+          return insertIntoTextarea(target, text);
+        }
+        return insertIntoContentEditable(target, text);
       }
 
       async function uploadToR2(file) {
@@ -96,23 +138,29 @@
           if (!payload || !payload.url) throw new Error("Missing url");
 
           const markdown = `![${file.name}](${payload.url})`;
-          const textarea = findMarkdownInput();
-          if (textarea) {
-            insertTextAtCursor(textarea, "\n" + markdown + "\n");
+          const inserted = insertMarkdownToEditor(markdown);
+          if (inserted) {
             alert("上传成功，已插入 Markdown 图片。");
           } else {
-            await navigator.clipboard.writeText(markdown);
-            alert("上传成功。未找到正文输入框，已复制 Markdown 到剪贴板。");
+            window.prompt("已上传成功，请手动复制下面 Markdown：", markdown);
           }
         } catch (err) {
-          alert("上传失败: " + (err && err.message ? err.message : String(err)));
+          const msg = err && err.message ? err.message : String(err);
+          alert("上传失败: " + msg);
         } finally {
           btn.disabled = false;
           btn.textContent = "上传图片到 R2";
         }
       }
 
-      function parseMetaBlock(body) {
+      function splitTags(text) {
+        return text
+          .split(/[，,、]/)
+          .map((v) => v.trim())
+          .filter(Boolean);
+      }
+
+      function parseCommentMetaBlock(body) {
         const source = String(body || "");
         const match = source.match(/^\s*<!--\s*meta\s*([\s\S]*?)-->\s*/i);
         if (!match) {
@@ -139,14 +187,57 @@
           }
 
           if (key === "tags") {
-            tags = value
-              .split(/[，,]/)
-              .map((v) => v.trim())
-              .filter(Boolean);
+            tags = splitTags(value);
           }
         });
 
         return { body: nextBody, description, tags };
+      }
+
+      function parseInlineMetaSyntax(body) {
+        const source = String(body || "");
+        const lines = source.split(/\r?\n/);
+        let idx = 0;
+        while (idx < lines.length && !lines[idx].trim()) idx += 1;
+
+        let tags = null;
+        let description = "";
+        let consumedUntil = idx;
+        let hasMeta = false;
+
+        const tagsMatch = lines[idx] && lines[idx].trim().match(/^\[(.+)\]\s*$/);
+        if (tagsMatch) {
+          tags = splitTags(tagsMatch[1] || "");
+          consumedUntil = idx + 1;
+          hasMeta = true;
+          idx += 1;
+          while (idx < lines.length && !lines[idx].trim()) idx += 1;
+        }
+
+        const descMatch = lines[idx] && lines[idx].trim().match(/^\((.+)\)\s*$/);
+        if (descMatch) {
+          description = (descMatch[1] || "").trim();
+          consumedUntil = idx + 1;
+          hasMeta = true;
+        }
+
+        if (!hasMeta) {
+          return { body: source, description: "", tags: null };
+        }
+
+        const bodyLines = lines.slice(consumedUntil);
+        const cleanedBody = bodyLines.join("\n").replace(/^\s+/, "");
+        return { body: cleanedBody, description, tags };
+      }
+
+      function parseBodyMeta(body) {
+        const fromComment = parseCommentMetaBlock(body);
+        const fromInline = parseInlineMetaSyntax(fromComment.body);
+        return {
+          body: fromInline.body,
+          description: fromInline.description || fromComment.description,
+          tags: fromInline.tags || fromComment.tags,
+        };
       }
 
       function simplifyChrome() {
@@ -165,7 +256,7 @@
         handler: ({ entry }) => {
           const data = entry.get("data");
           const body = data.get("body") || "";
-          const parsed = parseMetaBlock(body);
+          const parsed = parseBodyMeta(body);
 
           let next = data.set("body", parsed.body);
 

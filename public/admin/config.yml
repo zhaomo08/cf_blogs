@@ -35,11 +35,9 @@ collections:
         widget: "markdown"
         modes: ["raw"]
         hint: |
-          可选元信息请写在正文最上方（保存时会自动提取并从正文删除）：
-          <!--meta
-          description: 这里写摘要
-          tags: 摄影, 旅行, 生活
-          -->
+          可选元信息写在正文最上方（保存时自动提取并从正文删除）：
+          [技术, 生活]
+          (这里是摘要描述)
           直接粘贴图片 URL 可显示；本地图片用右下角“上传图片到 R2”按钮。
 
   - name: "blog_en"
@@ -64,8 +62,6 @@ collections:
         modes: ["raw"]
         hint: |
           Optional metadata at top (auto-extracted and removed on save):
-          <!--meta
-          description: write summary here
-          tags: travel, photo, life
-          -->
+          [travel, life]
+          (write summary here)
           Paste image URL directly, or use the bottom-right "Upload image to R2" button.
