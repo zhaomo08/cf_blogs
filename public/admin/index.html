@@ -240,6 +240,33 @@
         };
       }
 
+      function normalizeDateValue(value) {
+        const nowIso = new Date().toISOString();
+        if (!value) return nowIso;
+
+        let raw = value;
+        if (raw && typeof raw === "object" && typeof raw.toJS === "function") {
+          raw = raw.toJS();
+        }
+
+        if (raw && typeof raw === "object") {
+          if (typeof raw.toISOString === "function") {
+            return raw.toISOString();
+          }
+          if (typeof raw.value === "string") raw = raw.value;
+          else if (typeof raw.date === "string") raw = raw.date;
+          else if (typeof raw.raw === "string") raw = raw.raw;
+          else return nowIso;
+        }
+
+        const text = String(raw).trim();
+        if (!text || text === "{{now}}") return nowIso;
+
+        const timestamp = Date.parse(text);
+        if (Number.isNaN(timestamp)) return nowIso;
+        return new Date(timestamp).toISOString();
+      }
+
       function simplifyChrome() {
         const navLinks = Array.from(document.querySelectorAll("a, button, span"));
         navLinks.forEach((el) => {
@@ -259,10 +286,7 @@
           const parsed = parseBodyMeta(body);
 
           let next = data.set("body", parsed.body);
-
-          if (!data.get("date")) {
-            next = next.set("date", new Date().toISOString());
-          }
+          next = next.set("date", normalizeDateValue(data.get("date")));
 
           if (parsed.description) {
             next = next.set("description", parsed.description);

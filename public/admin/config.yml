@@ -26,7 +26,7 @@ collections:
       preview: false
     fields:
       - { label: "标题", name: "title", widget: "string" }
-      - { label: "发布时间", name: "date", widget: "hidden", default: "{{now}}" }
+      - { label: "发布时间", name: "date", widget: "hidden", default: "" }
       - { label: "摘要", name: "description", widget: "hidden", required: false, default: "" }
       - { label: "标签", name: "tags", widget: "hidden", required: false, default: [] }
       - { label: "草稿", name: "draft", widget: "hidden", default: false }
@@ -52,7 +52,7 @@ collections:
       preview: false
     fields:
       - { label: "Title", name: "title", widget: "string" }
-      - { label: "Published At", name: "date", widget: "hidden", default: "{{now}}" }
+      - { label: "Published At", name: "date", widget: "hidden", default: "" }
       - { label: "Description", name: "description", widget: "hidden", required: false, default: "" }
       - { label: "Tags", name: "tags", widget: "hidden", required: false, default: [] }
       - { label: "Draft", name: "draft", widget: "hidden", default: false }
