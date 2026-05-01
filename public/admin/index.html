@@ -27,37 +27,6 @@
       opacity: 0.6;
       cursor: not-allowed;
     }
-    .mobile-mode-dock {
-      position: fixed;
-      left: 16px;
-      right: 120px;
-      bottom: 16px;
-      display: none;
-      gap: 8px;
-      z-index: 9999;
-      pointer-events: auto;
-    }
-    .mobile-mode-dock button {
-      flex: 1;
-      border: 0;
-      border-radius: 8px;
-      background: #111827;
-      color: #fff;
-      font-size: 13px;
-      padding: 10px 8px;
-      cursor: pointer;
-      opacity: 0.9;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
-    }
-    .mobile-mode-dock button:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-    }
-    @media (max-width: 900px) {
-      .mobile-mode-dock {
-        display: flex;
-      }
-    }
   </style>
 </head>
 <body>
@@ -68,11 +37,6 @@
 
   <div class="admin-tools">
     <button id="btn-r2-upload" type="button">上传图片到 R2</button>
-  </div>
-
-  <div class="mobile-mode-dock" id="mobile-mode-dock">
-    <button id="btn-mode-rich" type="button">富文本</button>
-    <button id="btn-mode-markdown" type="button">Markdown</button>
   </div>
 
   <script>
@@ -395,59 +359,6 @@
         });
       }
 
-      function findModeButtonByText(texts) {
-        const loweredTexts = texts.map((v) => String(v).trim().toLowerCase());
-        const nodes = Array.from(document.querySelectorAll("button, [role='button'], label, span, div"));
-        for (const node of nodes) {
-          if (!isVisible(node)) continue;
-          const text = String(node.textContent || "").trim().toLowerCase();
-          if (!loweredTexts.includes(text)) continue;
-          const btn = node.closest("button, [role='button'], label") || node;
-          if (isVisible(btn)) return btn;
-        }
-        return null;
-      }
-
-      function switchEditorMode(mode) {
-        if (mode === "rich_text") {
-          const button = findModeButtonByText(["富文本", "rich text", "richtext"]);
-          if (!button) return false;
-          button.click();
-          return true;
-        }
-
-        if (mode === "raw") {
-          const button = findModeButtonByText(["markdown"]);
-          if (!button) return false;
-          button.click();
-          return true;
-        }
-
-        return false;
-      }
-
-      function detectCurrentMode() {
-        const rawEditor = Array.from(document.querySelectorAll("textarea")).find(isVisible);
-        if (rawEditor) return "raw";
-        const richEditor = Array.from(document.querySelectorAll("[contenteditable='true']")).find(isVisible);
-        if (richEditor) return "rich_text";
-        return null;
-      }
-
-      function syncMobileModeDockState() {
-        const dock = document.getElementById("mobile-mode-dock");
-        if (!dock) return;
-        dock.style.display = window.innerWidth <= 900 ? "flex" : "none";
-
-        const btnRich = document.getElementById("btn-mode-rich");
-        const btnMarkdown = document.getElementById("btn-mode-markdown");
-        if (!btnRich || !btnMarkdown) return;
-
-        const mode = detectCurrentMode();
-        btnRich.disabled = mode === "rich_text";
-        btnMarkdown.disabled = mode === "raw";
-      }
-
       function setupAutoLocation() {
         currentAutoLocation = readLocationCache();
         refreshAutoLocation();
@@ -502,18 +413,7 @@
 
       setupAutoLocation();
       document.getElementById("btn-r2-upload").addEventListener("click", handleR2Upload);
-      document.getElementById("btn-mode-rich").addEventListener("click", () => {
-        switchEditorMode("rich_text");
-        setTimeout(syncMobileModeDockState, 80);
-      });
-      document.getElementById("btn-mode-markdown").addEventListener("click", () => {
-        switchEditorMode("raw");
-        setTimeout(syncMobileModeDockState, 80);
-      });
       setInterval(simplifyChrome, 800);
-      setInterval(syncMobileModeDockState, 800);
-      window.addEventListener("resize", syncMobileModeDockState);
-      syncMobileModeDockState();
     })();
   </script>
 </body>
