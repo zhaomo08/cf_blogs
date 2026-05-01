@@ -29,10 +29,14 @@ export default {
     // OAuth 认证端点
     if (url.pathname === '/auth') {
       const clientId = env.OAUTH_CLIENT_ID;
-      const redirectUri = url.searchParams.get('redirect_uri') || url.origin + '/admin/oauth';
+      // 使用 Worker 自己的回调 URL
+      const callbackUrl = `${url.origin}/callback`;
+      
+      // 保存原始的 redirect_uri 用于后续重定向
+      const originalRedirect = url.searchParams.get('redirect_uri') || 'https://cf-blogs-4j9.pages.dev/admin/';
       
       // 重定向到 GitHub OAuth 授权页面
-      const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo,user`;
+      const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(callbackUrl)}&scope=repo,user&state=${encodeURIComponent(originalRedirect)}`;
       
       return Response.redirect(githubAuthUrl, 302);
     }
@@ -40,6 +44,7 @@ export default {
     // OAuth 回调端点
     if (url.pathname === '/callback') {
       const code = url.searchParams.get('code');
+      const state = url.searchParams.get('state') || 'https://cf-blogs-4j9.pages.dev/admin/';
       
       if (!code) {
         return new Response('Missing code parameter', { status: 400 });
@@ -69,12 +74,38 @@ export default {
           });
         }
 
-        // 返回访问令牌
-        return new Response(JSON.stringify({
-          token: tokenData.access_token,
-          provider: 'github',
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        // 构建回调 HTML，将 token 传递给 Decap CMS
+        const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Authorization Success</title>
+</head>
+<body>
+  <p>Authorization successful! Redirecting...</p>
+  <script>
+    (function() {
+      function receiveMessage(e) {
+        console.log("receiveMessage %o", e);
+        window.opener.postMessage(
+          'authorization:github:success:' + JSON.stringify({
+            token: "${tokenData.access_token}",
+            provider: "github"
+          }),
+          e.origin
+        );
+      }
+      window.addEventListener("message", receiveMessage, false);
+      window.opener.postMessage("authorizing:github", "*");
+    })();
+  </script>
+</body>
+</html>
+        `;
+
+        return new Response(html, {
+          headers: { ...corsHeaders, 'Content-Type': 'text/html' },
         });
 
       } catch (error) {

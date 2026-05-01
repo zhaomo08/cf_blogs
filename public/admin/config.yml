@@ -1,7 +1,5 @@
-# Decap CMS 配置文件
-# 文档: https://decapcms.org/docs/
+# Decap CMS 简化配置
 
-# 后端配置 - 使用 GitHub
 backend:
   name: github
   repo: zhaomo08/cf_blogs
@@ -9,182 +7,27 @@ backend:
   base_url: https://cf-blogs-oauth.zhaomo0823.workers.dev
   auth_endpoint: auth
 
-# 媒体文件配置 - 图片直接使用 URL
-# 你可以：
-# 1. 上传到 Cloudflare R2，然后使用 R2 URL
-# 2. 直接在 Markdown 中粘贴任何图片 URL
+# 图片上传配置
 media_folder: "public/images/uploads"
 public_folder: "/images/uploads"
 
-# 本地化配置
+# 中文界面
 locale: "zh_Hans"
-
-# 显示预览链接
-show_preview_links: true
-
-# 搜索
-search: true
 
 # 集合配置
 collections:
-  # 中文博客文章
   - name: "blog-zh"
-    label: "博客文章（中文）"
-    label_singular: "文章"
+    label: "博客文章"
     folder: "src/content/blog/zh"
     create: true
-    slug: "{{slug}}"
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
     extension: "md"
     format: "frontmatter"
-    editor:
-      preview: true
     fields:
-      - { label: "标题", name: "title", widget: "string", hint: "文章标题" }
-      - { label: "描述", name: "description", widget: "text", hint: "文章简介，会显示在文章卡片和搜索结果中" }
-      - { 
-          label: "发布日期", 
-          name: "date", 
-          widget: "datetime", 
-          format: "YYYY-MM-DD",
-          date_format: "YYYY-MM-DD",
-          time_format: false,
-          default: ""
-        }
-      - { 
-          label: "封面图", 
-          name: "cover", 
-          widget: "string",
-          required: false,
-          hint: "图片 URL（支持 Cloudflare R2 或任何 HTTPS 图片链接）"
-        }
-      - { 
-          label: "标签", 
-          name: "tags", 
-          widget: "list", 
-          required: false,
-          default: [],
-          hint: "文章标签，用于分类"
-        }
-      - { 
-          label: "草稿", 
-          name: "draft", 
-          widget: "boolean", 
-          default: false,
-          required: false,
-          hint: "草稿不会在网站上显示"
-        }
-      - label: "拍摄地"
-        name: "location"
-        widget: "object"
-        required: false
-        collapsed: true
-        hint: "添加拍摄地信息会在文章底部显示地图"
-        fields:
-          - { label: "地点名称", name: "name", widget: "string", hint: "例如：北京，中国" }
-          - { 
-              label: "纬度", 
-              name: "lat", 
-              widget: "number", 
-              value_type: "float",
-              min: -90,
-              max: 90,
-              step: 0.0001,
-              hint: "范围：-90 到 90"
-            }
-          - { 
-              label: "经度", 
-              name: "lng", 
-              widget: "number", 
-              value_type: "float",
-              min: -180,
-              max: 180,
-              step: 0.0001,
-              hint: "范围：-180 到 180"
-            }
-      - { 
-          label: "正文", 
-          name: "body", 
-          widget: "markdown",
-          hint: "使用 Markdown 语法编写文章内容。图片可以直接粘贴 URL 或使用 ![描述](图片URL) 格式"
-        }
-
-  # 英文博客文章
-  - name: "blog-en"
-    label: "Blog Posts (English)"
-    label_singular: "Post"
-    folder: "src/content/blog/en"
-    create: true
-    slug: "{{slug}}"
-    extension: "md"
-    format: "frontmatter"
-    editor:
-      preview: true
-    fields:
-      - { label: "Title", name: "title", widget: "string", hint: "Post title" }
-      - { label: "Description", name: "description", widget: "text", hint: "Post summary for cards and search results" }
-      - { 
-          label: "Publish Date", 
-          name: "date", 
-          widget: "datetime",
-          format: "YYYY-MM-DD",
-          date_format: "YYYY-MM-DD",
-          time_format: false,
-          default: ""
-        }
-      - { 
-          label: "Cover Image", 
-          name: "cover", 
-          widget: "string",
-          required: false,
-          hint: "Image URL (supports Cloudflare R2 or any HTTPS image link)"
-        }
-      - { 
-          label: "Tags", 
-          name: "tags", 
-          widget: "list",
-          required: false,
-          default: [],
-          hint: "Post tags for categorization"
-        }
-      - { 
-          label: "Draft", 
-          name: "draft", 
-          widget: "boolean",
-          default: false,
-          required: false,
-          hint: "Drafts won't be published on the site"
-        }
-      - label: "Location"
-        name: "location"
-        widget: "object"
-        required: false
-        collapsed: true
-        hint: "Adding location will display a map at the bottom of the post"
-        fields:
-          - { label: "Location Name", name: "name", widget: "string", hint: "e.g., Beijing, China" }
-          - { 
-              label: "Latitude", 
-              name: "lat", 
-              widget: "number",
-              value_type: "float",
-              min: -90,
-              max: 90,
-              step: 0.0001,
-              hint: "Range: -90 to 90"
-            }
-          - { 
-              label: "Longitude", 
-              name: "lng", 
-              widget: "number",
-              value_type: "float",
-              min: -180,
-              max: 180,
-              step: 0.0001,
-              hint: "Range: -180 to 180"
-            }
-      - { 
-          label: "Body", 
-          name: "body", 
-          widget: "markdown",
-          hint: "Write your post content using Markdown syntax. Images can be pasted as URLs or using ![alt](imageURL) format"
-        }
+      - { label: "标题", name: "title", widget: "string" }
+      - { label: "描述", name: "description", widget: "text" }
+      - { label: "发布日期", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false }
+      - { label: "封面图", name: "cover", widget: "image", required: false }
+      - { label: "标签", name: "tags", widget: "list", required: false, default: [] }
+      - { label: "草稿", name: "draft", widget: "boolean", default: false, required: false }
+      - { label: "正文", name: "body", widget: "markdown" }
