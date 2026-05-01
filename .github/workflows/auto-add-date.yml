@@ -1,11 +1,6 @@
 name: 自动添加文章日期
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - 'src/content/blog/**/*.md'
   workflow_dispatch:
 
 permissions:
