@@ -20,11 +20,11 @@ const dateStr = date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', {
   year: 'numeric', month: 'long', day: 'numeric',
 });
 
-// Content Layer API: use entry.id
 const prevSlug = prevPost ? prevPost.id.split('/').slice(1).join('/') : null;
 const nextSlug = nextPost ? nextPost.id.split('/').slice(1).join('/') : null;
 ---
 <BaseLayout {title} {description} image={cover} {lang}>
+  {location && <link slot="head" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />}
   <Header {lang} />
   <main class="container">
     <article>
@@ -55,32 +55,6 @@ const nextSlug = nextPost ? nextPost.id.split('/').slice(1).join('/') : null;
             data-name={location.name}
             aria-label={`${t(lang, 'post.location')}: ${location.name}`}
           ></div>
-          <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-          <script>
-            document.addEventListener('DOMContentLoaded', async () => {
-              const el = document.querySelector('.location-map') as HTMLElement | null;
-              if (!el) return;
-              const L = (await import('leaflet')).default;
-              const lat = parseFloat(el.dataset.lat!);
-              const lng = parseFloat(el.dataset.lng!);
-              const name = el.dataset.name!;
-              const icon = L.icon({
-                iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-                iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-                shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-                shadowSize: [41, 41],
-              });
-              const map = L.map(el).setView([lat, lng], 12);
-              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                maxZoom: 19,
-              }).addTo(map);
-              L.marker([lat, lng], { icon }).addTo(map).bindPopup(name).openPopup();
-            });
-          </script>
         </section>
       )}
     </article>
@@ -100,6 +74,28 @@ const nextSlug = nextPost ? nextPost.id.split('/').slice(1).join('/') : null;
   </main>
   <Footer {lang} />
 </BaseLayout>
+
+{location && (
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" is:inline></script>
+  <script is:inline define:vars={{ mapLat: location.lat, mapLng: location.lng, mapName: location.name }}>
+    window.addEventListener('load', function() {
+      var el = document.querySelector('.location-map');
+      if (!el) return;
+      var icon = L.icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+      });
+      var map = L.map(el).setView([mapLat, mapLng], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19
+      }).addTo(map);
+      L.marker([mapLat, mapLng], { icon: icon }).addTo(map).bindPopup(mapName).openPopup();
+    });
+  </script>
+)}
 
 <style>
   .container { max-width: var(--max-width); margin: 0 auto; padding: 2rem 1rem; }

@@ -12,7 +12,7 @@ export async function getStaticPaths() {
     const [lang, ...rest] = post.id.split('/');
     const slug = rest.join('/');
     const langPosts = sorted.filter(p => p.id.startsWith(`${lang}/`));
-    const idx = langPosts.indexOf(post);
+    const idx = langPosts.findIndex(p => p.id === post.id);
 
     return {
       params: { lang, slug },
