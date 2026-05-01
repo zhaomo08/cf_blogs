@@ -307,7 +307,10 @@
           const pos = await getCurrentPositionAsync();
           const lat = Number(pos.coords.latitude.toFixed(6));
           const lng = Number(pos.coords.longitude.toFixed(6));
-          const name = await reverseGeocode(lat, lng);
+          let name = `${lat}, ${lng}`;
+          try {
+            name = await reverseGeocode(lat, lng);
+          } catch (_) {}
           const location = normalizeLocationValue({ name, lat, lng });
           if (!location) return null;
           currentAutoLocation = location;
