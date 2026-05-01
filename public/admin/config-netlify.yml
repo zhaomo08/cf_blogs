@@ -16,10 +16,19 @@ collections:
     label_singular: "文章"
     folder: "src/content/blog"
     create: true
+    summary: "{{title}} · {{dirname}}"
     slug: "{{year}}-{{month}}-{{day}}-{{hour}}{{minute}}{{second}}"
     extension: "md"
     format: "frontmatter"
     preview_path: "blog/{{slug}}"
+    nested:
+      depth: 5
+      summary: "{{title}}"
+      subfolders: false
+    meta:
+      path:
+        widget: "string"
+        label: "路径"
     editor:
       preview: false
     fields:
