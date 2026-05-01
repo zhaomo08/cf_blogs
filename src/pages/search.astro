@@ -1,0 +1,24 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="搜索 / Search" description="搜索博客文章">
+  <Fragment slot="head">
+    <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
+  </Fragment>
+  <main class="container">
+    <h1>搜索 / Search</h1>
+    <div id="search"></div>
+  </main>
+</BaseLayout>
+
+<script is:inline src="/pagefind/pagefind-ui.js"></script>
+<script is:inline>
+  window.addEventListener('DOMContentLoaded', function() {
+    new PagefindUI({ element: '#search', showImages: true, showEmptyFilters: false });
+  });
+</script>
+
+<style>
+  .container { max-width: var(--max-width); margin: 0 auto; padding: 2rem 1rem; }
+  h1 { margin-bottom: 1.5rem; }
+</style>
