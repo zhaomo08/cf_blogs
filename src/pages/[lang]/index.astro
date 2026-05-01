@@ -16,7 +16,7 @@ const { lang } = Astro.params as { lang: Lang };
 const posts = await getCollection('blog', ({ id, data }) =>
   id.startsWith(`${lang}/`) && !data.draft
 );
-const sorted = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const sorted = [...posts].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
 const title = lang === 'zh' ? '首页' : 'Home';
 const description = lang === 'zh' ? '我的图文博客' : 'My Photo Blog';
@@ -25,7 +25,7 @@ const description = lang === 'zh' ? '我的图文博客' : 'My Photo Blog';
   <Header {lang} />
   <main class="container">
     {sorted.length === 0
-      ? <p class="empty">暂无文章</p>
+      ? <p class="empty">{lang === 'zh' ? '暂无文章' : 'No posts yet'}</p>
       : <div class="grid">{sorted.map(post => <PostCard {post} {lang} />)}</div>
     }
   </main>
