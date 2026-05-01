@@ -2,11 +2,5 @@
 name = "cf-blogs"
 compatibility_date = "2024-01-01"
 
-# Pages 构建配置
+# Pages 构建输出目录
 pages_build_output_dir = "dist"
-
-[build]
-command = "npm run build"
-
-[build.upload]
-format = "service-worker"
