@@ -25,3 +25,6 @@ pnpm-debug.log*
 
 # wrangler
 .wrangler/
+
+# 注意：public/images/uploads/ 中的图片应该被提交到 Git
+# 如果图片很大，建议使用外部图片服务（如 Unsplash 或 Cloudflare R2）

@@ -9,7 +9,9 @@
     "dev": "astro dev",
     "build": "astro build && pagefind --site dist",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "new": "node scripts/new-post.js",
+    "setup-admin": "node scripts/setup-admin.js"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.18",

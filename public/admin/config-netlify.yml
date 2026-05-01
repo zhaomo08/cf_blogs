@@ -1,0 +1,94 @@
+# Decap CMS 配置文件 - Netlify Identity 版本
+# 这是最简单的配置方式，适合快速开始
+
+# 使用 Git Gateway（通过 Netlify Identity）
+backend:
+  name: git-gateway
+  branch: main  # 或 master
+
+# 媒体文件配置
+media_folder: "public/images/uploads"
+public_folder: "/images/uploads"
+
+# 本地化配置
+locale: "zh_Hans"
+
+# 显示预览链接
+show_preview_links: true
+
+# 搜索
+search: true
+
+# 集合配置（与主配置相同）
+collections:
+  # 中文博客文章
+  - name: "blog-zh"
+    label: "博客文章（中文）"
+    label_singular: "文章"
+    folder: "src/content/blog/zh"
+    create: true
+    slug: "{{slug}}"
+    extension: "md"
+    format: "frontmatter"
+    editor:
+      preview: true
+    fields:
+      - { label: "标题", name: "title", widget: "string" }
+      - { label: "描述", name: "description", widget: "text" }
+      - { 
+          label: "发布日期", 
+          name: "date", 
+          widget: "datetime", 
+          format: "YYYY-MM-DD",
+          date_format: "YYYY-MM-DD",
+          time_format: false
+        }
+      - { label: "封面图", name: "cover", widget: "image", required: false }
+      - { label: "标签", name: "tags", widget: "list", required: false, default: [] }
+      - { label: "草稿", name: "draft", widget: "boolean", default: false, required: false }
+      - label: "拍摄地"
+        name: "location"
+        widget: "object"
+        required: false
+        collapsed: true
+        fields:
+          - { label: "地点名称", name: "name", widget: "string" }
+          - { label: "纬度", name: "lat", widget: "number", value_type: "float", min: -90, max: 90, step: 0.0001 }
+          - { label: "经度", name: "lng", widget: "number", value_type: "float", min: -180, max: 180, step: 0.0001 }
+      - { label: "正文", name: "body", widget: "markdown" }
+
+  # 英文博客文章
+  - name: "blog-en"
+    label: "Blog Posts (English)"
+    label_singular: "Post"
+    folder: "src/content/blog/en"
+    create: true
+    slug: "{{slug}}"
+    extension: "md"
+    format: "frontmatter"
+    editor:
+      preview: true
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Description", name: "description", widget: "text" }
+      - { 
+          label: "Publish Date", 
+          name: "date", 
+          widget: "datetime",
+          format: "YYYY-MM-DD",
+          date_format: "YYYY-MM-DD",
+          time_format: false
+        }
+      - { label: "Cover Image", name: "cover", widget: "image", required: false }
+      - { label: "Tags", name: "tags", widget: "list", required: false, default: [] }
+      - { label: "Draft", name: "draft", widget: "boolean", default: false, required: false }
+      - label: "Location"
+        name: "location"
+        widget: "object"
+        required: false
+        collapsed: true
+        fields:
+          - { label: "Location Name", name: "name", widget: "string" }
+          - { label: "Latitude", name: "lat", widget: "number", value_type: "float", min: -90, max: 90, step: 0.0001 }
+          - { label: "Longitude", name: "lng", widget: "number", value_type: "float", min: -180, max: 180, step: 0.0001 }
+      - { label: "Body", name: "body", widget: "markdown" }

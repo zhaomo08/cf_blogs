@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>GitHub OAuth</title>
+  <script>
+    // OAuth 回调处理
+    (function() {
+      function getParameterByName(name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+          results = regex.exec(location.search);
+        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+      }
+
+      var errorMessage = getParameterByName('error');
+      if (errorMessage) {
+        document.write('<p style="color: red;">Error: ' + errorMessage + '</p>');
+      } else {
+        var code = getParameterByName('code');
+        if (code) {
+          // 将授权码发送回父窗口
+          if (window.opener) {
+            window.opener.postMessage(
+              'authorization:github:success:{"code":"' + code + '"}',
+              window.location.origin
+            );
+            window.close();
+          }
+        }
+      }
+    })();
+  </script>
+</head>
+<body>
+  <p>正在处理 GitHub 授权...</p>
+</body>
+</html>
