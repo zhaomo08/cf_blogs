@@ -16,22 +16,13 @@ public_folder: "https://cf-blogs-r2.zhaomo0823.workers.dev/images/uploads"
 collections:
   - name: "blog"
     label: "博客文章"
-    folder: "src/content/blog"
+    folder: "src/content/blog/zh"
     create: true
-    summary: "{{title}} · {{dirname}}"
+    summary: "{{title}}"
     slug: "{{year}}-{{month}}-{{day}}-{{hour}}{{minute}}{{second}}"
     extension: "md"
     format: "frontmatter"
-    preview_path: "blog/{{slug}}"
-    nested:
-      depth: 5
-      summary: "{{title}}"
-      subfolders: false
-    meta:
-      path:
-        widget: "string"
-        label: "路径"
-        index_file: "_index"
+    preview_path: "blog/zh/{{slug}}"
     editor:
       preview: false
     fields:
