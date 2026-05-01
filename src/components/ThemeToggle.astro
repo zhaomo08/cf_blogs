@@ -1,0 +1,38 @@
+<button id="theme-toggle" aria-label="切换主题">
+  <span class="sun">☀️</span>
+  <span class="moon">🌙</span>
+</button>
+
+<script>
+  const btn = document.getElementById('theme-toggle')!;
+  const html = document.documentElement;
+
+  function sync() {
+    const dark = html.dataset.theme === 'dark';
+    (btn.querySelector('.sun') as HTMLElement).style.display = dark ? 'none' : 'inline';
+    (btn.querySelector('.moon') as HTMLElement).style.display = dark ? 'inline' : 'none';
+  }
+
+  sync();
+
+  btn.addEventListener('click', () => {
+    const next = html.dataset.theme === 'dark' ? 'light' : 'dark';
+    html.dataset.theme = next;
+    localStorage.setItem('theme', next);
+    sync();
+  });
+</script>
+
+<style>
+  button {
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 4px 10px;
+    font-size: 1rem;
+    line-height: 1;
+    color: var(--color-text);
+  }
+  button:hover { background: var(--color-bg-secondary); }
+</style>

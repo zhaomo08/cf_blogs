@@ -1,0 +1,23 @@
+---
+import { LANGUAGES, type Lang } from '../i18n/index';
+import { getAlternateUrl } from '../i18n/translations';
+
+interface Props {
+  currentLang: Lang;
+}
+const { currentLang } = Astro.props;
+---
+<div class="lang-switcher">
+  {Object.entries(LANGUAGES).map(([lang, label]) =>
+    lang === currentLang
+      ? <span class="active">{label}</span>
+      : <a href={getAlternateUrl(Astro.url, lang as Lang)}>{label}</a>
+  )}
+</div>
+
+<style>
+  .lang-switcher { display: flex; gap: 0.5rem; align-items: center; font-size: 0.9rem; }
+  .active { font-weight: 700; color: var(--color-text); }
+  a { color: var(--color-text-muted); }
+  a:hover { color: var(--color-accent); text-decoration: none; }
+</style>
