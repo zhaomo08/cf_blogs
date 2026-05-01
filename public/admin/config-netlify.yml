@@ -22,7 +22,7 @@ collections:
     format: "frontmatter"
     preview_path: "blog/zh/{{slug}}"
     editor:
-      preview: true
+      preview: false
     fields:
       - { label: "标题", name: "title", widget: "string" }
       - { label: "发布时间", name: "date", widget: "hidden", default: "" }
