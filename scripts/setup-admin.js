@@ -83,7 +83,7 @@ async function main() {
     console.log('\n✅ 配置已更新！');
     console.log('\n📋 下一步：');
     console.log('1. 创建 GitHub OAuth App：https://github.com/settings/developers');
-    console.log('2. 部署 OAuth Worker（参考 ADMIN_SETUP.md）');
+    console.log('2. 部署 OAuth Worker（参考 README.md）');
     console.log('3. 访问 https://yourdomain.com/admin/ 登录');
 
   } else if (mode === '2') {

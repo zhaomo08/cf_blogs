@@ -150,7 +150,7 @@ date: ${date}`;
 
 ---
 
-> 提示：使用 Markdown 语法编写文章。查看 BLOG_GUIDE.md 了解更多。
+> 提示：使用 Markdown 语法编写文章。查看 README.md 了解更多。
 `;
 
   // 确保目录存在
