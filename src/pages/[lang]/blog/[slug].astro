@@ -1,0 +1,35 @@
+---
+import { getCollection, render } from 'astro:content';
+import PostLayout from '../../../layouts/PostLayout.astro';
+import type { Lang } from '../../../i18n/index';
+
+export async function getStaticPaths() {
+  const all = await getCollection('blog', ({ data }) => !data.draft);
+  const sorted = [...all].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+  return sorted.map(post => {
+    // Content Layer API: entry.id is "zh/hello-world"
+    const [lang, ...rest] = post.id.split('/');
+    const slug = rest.join('/');
+    const langPosts = sorted.filter(p => p.id.startsWith(`${lang}/`));
+    const idx = langPosts.indexOf(post);
+
+    return {
+      params: { lang, slug },
+      props: {
+        post,
+        prevPost: langPosts[idx + 1] ?? null,
+        nextPost: langPosts[idx - 1] ?? null,
+      },
+    };
+  });
+}
+
+const { post, prevPost, nextPost } = Astro.props;
+const { lang } = Astro.params as { lang: Lang };
+// Content Layer API: use render() function, not entry.render()
+const { Content } = await render(post);
+---
+<PostLayout {post} {lang} {prevPost} {nextPost}>
+  <Content />
+</PostLayout>
