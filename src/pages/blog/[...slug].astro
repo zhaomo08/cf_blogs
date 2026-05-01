@@ -3,10 +3,6 @@ import { getCollection, render, type CollectionEntry } from 'astro:content';
 import PostLayout from '../../layouts/PostLayout.astro';
 import type { Lang } from '../../i18n/index';
 
-function detectLangFromId(id: string): Lang {
-  return id.startsWith('en/') ? 'en' : 'zh';
-}
-
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
   const sorted = [...posts].sort((a, b) => {
@@ -19,7 +15,7 @@ export async function getStaticPaths() {
     params: { slug: post.id },
     props: {
       post,
-      lang: detectLangFromId(post.id),
+      lang: post.id.startsWith('en/') ? 'en' : 'zh',
       prevPost: sorted[index + 1] ?? null,
       nextPost: sorted[index - 1] ?? null,
     },
