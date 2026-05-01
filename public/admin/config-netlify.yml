@@ -29,6 +29,7 @@ collections:
       path:
         widget: "string"
         label: "路径"
+        index_file: "_index"
     editor:
       preview: false
     fields:
