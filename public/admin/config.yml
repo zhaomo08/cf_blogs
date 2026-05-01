@@ -38,6 +38,7 @@ collections:
           可选元信息写在正文最上方（保存时自动提取并从正文删除）：
           [技术, 生活]
           (这里是摘要描述)
+          地点会在保存时自动读取当前位置并写入地图数据（无需手动填写）。
           直接粘贴图片 URL 可显示；本地图片用右下角“上传图片到 R2”按钮。
 
   - name: "blog_en"
@@ -64,4 +65,5 @@ collections:
           Optional metadata at top (auto-extracted and removed on save):
           [travel, life]
           (write summary here)
+          Location is auto-captured on save for map rendering (no manual input required).
           Paste image URL directly, or use the bottom-right "Upload image to R2" button.
