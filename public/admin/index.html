@@ -232,13 +232,14 @@
         const source = String(body || "");
         const match = source.match(/^\s*<!--\s*meta\s*([\s\S]*?)-->\s*/i);
         if (!match) {
-          return { body: source, description: "", tags: null };
+          return { body: source, description: "", tags: null, cover: "" };
         }
 
         const metaText = match[1] || "";
         const nextBody = source.replace(match[0], "");
         let description = "";
         let tags = null;
+        let cover = "";
 
         metaText.split(/\r?\n/).forEach((line) => {
           const item = line.trim();
@@ -256,10 +257,15 @@
 
           if (key === "tags") {
             tags = splitTags(value);
+            return;
+          }
+
+          if (key === "cover" || key === "image") {
+            cover = value;
           }
         });
 
-        return { body: nextBody, description, tags };
+        return { body: nextBody, description, tags, cover };
       }
 
       function parseInlineMetaSyntax(body) {
@@ -270,6 +276,7 @@
 
         let tags = null;
         let description = "";
+        let cover = "";
         let consumedUntil = idx;
         let hasMeta = false;
 
@@ -287,24 +294,74 @@
           description = (descMatch[1] || "").trim();
           consumedUntil = idx + 1;
           hasMeta = true;
+          idx += 1;
+          while (idx < lines.length && !lines[idx].trim()) idx += 1;
+        }
+
+        const coverMatch = lines[idx] && lines[idx].trim().match(/^(?:cover|封面)\s*:\s*(https?:\/\/\S+)\s*$/i);
+        if (coverMatch) {
+          cover = coverMatch[1].trim();
+          consumedUntil = idx + 1;
+          hasMeta = true;
         }
 
         if (!hasMeta) {
-          return { body: source, description: "", tags: null };
+          return { body: source, description: "", tags: null, cover: "" };
         }
 
         const bodyLines = lines.slice(consumedUntil);
         const cleanedBody = bodyLines.join("\n").replace(/^\s+/, "");
-        return { body: cleanedBody, description, tags };
+        return { body: cleanedBody, description, tags, cover };
+      }
+
+      function extractFirstMarkdownImage(body) {
+        const source = String(body || "");
+        const mdMatch = source.match(/!\[[^\]]*]\((https?:\/\/[^)\s]+)\)/i);
+        if (mdMatch && mdMatch[1]) return mdMatch[1].trim();
+        const htmlMatch = source.match(/<img[^>]+src=["'](https?:\/\/[^"']+)["']/i);
+        if (htmlMatch && htmlMatch[1]) return htmlMatch[1].trim();
+        return "";
+      }
+
+      function normalizeCoverUrl(value) {
+        const text = String(value || "").trim();
+        if (!text) return "";
+        try {
+          const url = new URL(text);
+          if (url.protocol === "http:" || url.protocol === "https:") {
+            return url.toString();
+          }
+          return "";
+        } catch (_) {
+          return "";
+        }
+      }
+
+      function extractFirstParagraph(body) {
+        const source = String(body || "")
+          .replace(/!\[[^\]]*]\((?:[^)]+)\)/g, " ")
+          .replace(/<img[^>]*>/gi, " ")
+          .replace(/```[\s\S]*?```/g, " ")
+          .replace(/`[^`]+`/g, " ")
+          .replace(/^#+\s+/gm, "")
+          .replace(/^\s*[-*]\s+/gm, "")
+          .replace(/^\s*\d+\.\s+/gm, "");
+
+        const lines = source.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+        const first = lines.find((line) => line.length > 6) || "";
+        if (!first) return "";
+        return first.length > 140 ? `${first.slice(0, 137)}...` : first;
       }
 
       function parseBodyMeta(body) {
         const fromComment = parseCommentMetaBlock(body);
         const fromInline = parseInlineMetaSyntax(fromComment.body);
+        const finalBody = fromInline.body;
         return {
-          body: fromInline.body,
+          body: finalBody,
           description: fromInline.description || fromComment.description,
           tags: fromInline.tags || fromComment.tags,
+          cover: normalizeCoverUrl(fromInline.cover || fromComment.cover || extractFirstMarkdownImage(finalBody)),
         };
       }
 
@@ -468,6 +525,11 @@
 
           if (parsed.description) {
             next = next.set("description", parsed.description);
+          } else {
+            const fallbackDescription = extractFirstParagraph(parsed.body);
+            if (fallbackDescription) {
+              next = next.set("description", fallbackDescription);
+            }
           }
 
           if (parsed.tags) {
@@ -475,6 +537,10 @@
               ? window.Immutable.fromJS(parsed.tags)
               : parsed.tags;
             next = next.set("tags", tagsValue);
+          }
+
+          if (parsed.cover) {
+            next = next.set("cover", parsed.cover);
           }
 
           const existingLocation = normalizeLocationValue(data.get("location"));

@@ -27,6 +27,7 @@ collections:
       - { label: "标题", name: "title", widget: "string" }
       - { label: "发布时间", name: "date", widget: "hidden", default: "" }
       - { label: "摘要", name: "description", widget: "hidden", required: false, default: "" }
+      - { label: "封面", name: "cover", widget: "hidden", required: false, default: "" }
       - { label: "标签", name: "tags", widget: "hidden", required: false, default: [] }
       - { label: "草稿", name: "draft", widget: "hidden", default: false }
       - label: "正文（Markdown / 富文本）"
@@ -37,6 +38,7 @@ collections:
           可选元信息写在正文最上方（保存时自动提取并从正文删除）：
           [技术, 生活]
           (这里是摘要描述)
+          cover: https://你的封面图片URL
           地点会在保存时自动读取当前位置并写入地图数据（无需手动填写）。
           直接粘贴图片 URL 可显示；本地图片用右下角“上传图片到 R2”按钮。
-          可在编辑器底部切换 Markdown/富文本，并用右侧预览查看渲染效果。
+          若未填写 cover，会自动使用正文第一张图片；若未填写摘要，会自动取正文第一段。

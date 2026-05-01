@@ -64,7 +64,11 @@ location:
 ```md
 [技术, 生活]
 (这里是摘要)
+cover: https://example.com/cover.jpg
 ```
+
+- 若未填写 `cover`，后台会自动取正文第一张图片作为封面
+- 若未填写摘要，后台会自动取正文第一段作为摘要
 
 ## 部署
 - 推荐：Cloudflare Pages 直接连接 GitHub 仓库自动部署

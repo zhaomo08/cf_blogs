@@ -92,6 +92,19 @@ function validateFile(filePath, slugSet) {
     errors.push(`${relative}: tags should be array style, e.g. ["a","b"] or list block`);
   }
 
+  const coverRaw = getSingleLineField(frontmatter, 'cover');
+  if (coverRaw) {
+    const cover = stripQuotes(coverRaw);
+    try {
+      const parsed = new URL(cover);
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        errors.push(`${relative}: cover must be http/https URL`);
+      }
+    } catch (_) {
+      errors.push(`${relative}: cover must be valid URL`);
+    }
+  }
+
   const location = parseLocation(frontmatter);
   if (location) {
     if (!location.name || !stripQuotes(location.name)) {
