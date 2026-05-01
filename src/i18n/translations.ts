@@ -48,5 +48,6 @@ export function getAlternateUrl(url: URL, targetLang: Lang): string {
   } else {
     segments.unshift(targetLang);
   }
-  return '/' + segments.join('/');
+  const trailingSlash = url.pathname.endsWith('/') ? '/' : '';
+  return '/' + segments.join('/') + trailingSlash;
 }

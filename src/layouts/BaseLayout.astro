@@ -1,11 +1,12 @@
 ---
 import '../styles/global.css';
+import type { Lang } from '../i18n/index';
 
 interface Props {
   title: string;
   description: string;
   image?: string;
-  lang?: string;
+  lang?: Lang;
 }
 
 const {
