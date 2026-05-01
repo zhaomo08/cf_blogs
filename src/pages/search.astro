@@ -9,14 +9,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <h1>搜索 / Search</h1>
     <div id="search"></div>
   </main>
+  <Fragment slot="scripts">
+    <script is:inline src="/pagefind/pagefind-ui.js"></script>
+    <script is:inline>
+      window.addEventListener('DOMContentLoaded', function() {
+        new PagefindUI({ element: '#search', showImages: true, showEmptyFilters: false });
+      });
+    </script>
+  </Fragment>
 </BaseLayout>
-
-<script is:inline src="/pagefind/pagefind-ui.js"></script>
-<script is:inline>
-  window.addEventListener('DOMContentLoaded', function() {
-    new PagefindUI({ element: '#search', showImages: true, showEmptyFilters: false });
-  });
-</script>
 
 <style>
   .container { max-width: var(--max-width); margin: 0 auto; padding: 2rem 1rem; }
