@@ -11,7 +11,7 @@ display_url: https://cf-blogs-4j9.pages.dev
 publish_mode: simple
 
 media_folder: "public/images/uploads"
-public_folder: "https://r2.zhaomo0823.workers.dev/images/uploads"
+public_folder: "https://cf-blogs-r2.zhaomo0823.workers.dev/images/uploads"
 
 collections:
   - name: "blog_zh"

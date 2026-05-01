@@ -3,20 +3,39 @@
 
 export default {
   async fetch(request, env) {
+    const url = new URL(request.url);
+    const path = url.pathname;
+
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    };
+
     // CORS 预检请求
     if (request.method === 'OPTIONS') {
       return new Response(null, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          'Access-Control-Max-Age': '86400',
-        },
+        headers: corsHeaders,
       });
     }
 
-    const url = new URL(request.url);
-    const path = url.pathname;
+    if (request.method === 'GET' && path === '/') {
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          service: 'cf-blogs-r2',
+          upload: `${url.origin}/upload`,
+        }),
+        {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+    }
 
     // GET 请求 - 获取图片
     if (request.method === 'GET' && path.startsWith('/images/')) {
@@ -42,19 +61,22 @@ export default {
     }
 
     // POST 请求 - 上传图片
-    if (request.method === 'POST' && path === '/upload') {
+    if (request.method === 'POST' && (path === '/upload' || path === '/upload/')) {
       try {
         const formData = await request.formData();
         const file = formData.get('file');
         
-        if (!file) {
-          return new Response('No file provided', { status: 400 });
+        if (!file || typeof file.stream !== 'function') {
+          return new Response('No valid file provided', {
+            status: 400,
+            headers: corsHeaders,
+          });
         }
 
         // 生成唯一文件名
         const timestamp = Date.now();
         const randomStr = Math.random().toString(36).substring(2, 8);
-        const ext = file.name.split('.').pop();
+        const ext = file.name.includes('.') ? file.name.split('.').pop() : 'bin';
         const filename = `${timestamp}-${randomStr}.${ext}`;
         const key = `images/uploads/${filename}`;
 
@@ -66,25 +88,26 @@ export default {
         });
 
         // 返回图片 URL
-        const imageUrl = `https://r2.zhaomo0823.workers.dev/${key}`;
+        const imageUrl = `${url.origin}/${key}`;
         
         return new Response(JSON.stringify({ url: imageUrl }), {
           status: 200,
           headers: {
+            ...corsHeaders,
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
           },
         });
       } catch (error) {
         return new Response('Upload error: ' + error.message, { 
           status: 500,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-          },
+          headers: corsHeaders,
         });
       }
     }
 
-    return new Response('Not found', { status: 404 });
+    return new Response('Not found', {
+      status: 404,
+      headers: corsHeaders,
+    });
   },
 };
