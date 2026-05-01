@@ -1,0 +1,43 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import PostCard from '../../components/PostCard.astro';
+import { SUPPORTED_LANGS, type Lang } from '../../i18n/index';
+
+export function getStaticPaths() {
+  return SUPPORTED_LANGS.map(lang => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Lang };
+
+// Content Layer API: filter by entry.id prefix
+const posts = await getCollection('blog', ({ id, data }) =>
+  id.startsWith(`${lang}/`) && !data.draft
+);
+const sorted = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const title = lang === 'zh' ? '首页' : 'Home';
+const description = lang === 'zh' ? '我的图文博客' : 'My Photo Blog';
+---
+<BaseLayout {title} {description} {lang}>
+  <Header {lang} />
+  <main class="container">
+    {sorted.length === 0
+      ? <p class="empty">暂无文章</p>
+      : <div class="grid">{sorted.map(post => <PostCard {post} {lang} />)}</div>
+    }
+  </main>
+  <Footer {lang} />
+</BaseLayout>
+
+<style>
+  .container { max-width: var(--max-width); margin: 0 auto; padding: 2rem 1rem; }
+  .grid { display: grid; gap: 1.5rem; }
+  .empty { color: var(--color-text-muted); text-align: center; padding: 4rem 0; }
+
+  @media (min-width: 600px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
