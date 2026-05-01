@@ -1,4 +1,4 @@
-# Decap CMS 配置 - 简化版 Markdown 编辑器
+# Decap CMS 配置 - 极简 Markdown 编辑器
 
 backend:
   name: github
@@ -14,7 +14,7 @@ public_folder: "/images/uploads"
 # 中文界面
 locale: "zh_Hans"
 
-# 集合配置 - 最小化字段
+# 集合配置 - 只需要标题和正文
 collections:
   - name: "blog-zh"
     label: "博客文章"
@@ -25,5 +25,5 @@ collections:
     format: "frontmatter"
     fields:
       - { label: "标题", name: "title", widget: "string" }
-      - { label: "日期", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false }
-      - { label: "正文", name: "body", widget: "markdown", hint: "在 frontmatter 中添加 tags: [科技, AI] 来设置标签，添加 cover: 图片URL 来设置封面" }
+      - { label: "发布日期", name: "date", widget: "hidden", default: "{{now}}" }
+      - { label: "正文", name: "body", widget: "markdown", hint: "可以在正文中添加 tags: [科技, AI] 来设置标签，添加图片链接等" }
