@@ -359,6 +359,30 @@
         });
       }
 
+      function enhanceMobileModeToggleTapArea() {
+        if (window.innerWidth > 900) return;
+
+        const modeLabels = Array.from(document.querySelectorAll("button, [role='button'], label, span")).filter((el) => {
+          const text = String(el.textContent || "").trim().toLowerCase();
+          return text === "markdown" || text === "富文本";
+        });
+
+        modeLabels.forEach((el) => {
+          const actionEl = el.closest("button, [role='button'], label") || el;
+          if (actionEl.dataset.mobileModeTouchEnhanced === "1") return;
+          actionEl.dataset.mobileModeTouchEnhanced = "1";
+          actionEl.style.minHeight = "34px";
+          actionEl.style.minWidth = "72px";
+          actionEl.style.padding = "6px 10px";
+          actionEl.style.display = "inline-flex";
+          actionEl.style.alignItems = "center";
+          actionEl.style.justifyContent = "center";
+          actionEl.style.borderRadius = "8px";
+          actionEl.style.touchAction = "manipulation";
+          actionEl.style.cursor = "pointer";
+        });
+      }
+
       function setupAutoLocation() {
         currentAutoLocation = readLocationCache();
         refreshAutoLocation();
@@ -414,6 +438,7 @@
       setupAutoLocation();
       document.getElementById("btn-r2-upload").addEventListener("click", handleR2Upload);
       setInterval(simplifyChrome, 800);
+      setInterval(enhanceMobileModeToggleTapArea, 800);
     })();
   </script>
 </body>

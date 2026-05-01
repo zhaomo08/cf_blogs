@@ -29,10 +29,10 @@ collections:
       - { label: "摘要", name: "description", widget: "hidden", required: false, default: "" }
       - { label: "标签", name: "tags", widget: "hidden", required: false, default: [] }
       - { label: "草稿", name: "draft", widget: "hidden", default: false }
-      - label: "正文（Markdown）"
+      - label: "正文（Markdown / 富文本）"
         name: "body"
-        widget: "markdown"
-        modes: ["raw", "rich_text"]
+        widget: "richtext"
+        modes: ["rich_text", "raw"]
         hint: |
           可选元信息写在正文最上方（保存时自动提取并从正文删除）：
           [技术, 生活]
