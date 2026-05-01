@@ -1,0 +1,49 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+import LanguageSwitcher from './LanguageSwitcher.astro';
+import { t } from '../i18n/translations';
+import type { Lang } from '../i18n/index';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+---
+<header>
+  <nav class="nav-inner">
+    <a href={`/${lang}/`} class="logo">📷 Blog</a>
+    <div class="nav-links">
+      <a href={`/${lang}/`}>{t(lang, 'nav.home')}</a>
+      <a href="/search">{t(lang, 'nav.search')}</a>
+      <a href={`/${lang}/rss.xml`} title="RSS">{t(lang, 'nav.rss')}</a>
+    </div>
+    <div class="nav-actions">
+      <LanguageSwitcher currentLang={lang} />
+      <ThemeToggle />
+    </div>
+  </nav>
+</header>
+
+<style>
+  header {
+    border-bottom: 1px solid var(--color-border);
+    padding: 0.75rem 1rem;
+    position: sticky;
+    top: 0;
+    background: var(--color-bg);
+    z-index: 100;
+  }
+  .nav-inner {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .logo { font-weight: 700; font-size: 1.1rem; color: var(--color-text); flex-shrink: 0; }
+  .logo:hover { text-decoration: none; opacity: 0.8; }
+  .nav-links { display: flex; gap: 1.25rem; flex: 1; }
+  .nav-links a { color: var(--color-text-muted); font-size: 0.95rem; }
+  .nav-links a:hover { color: var(--color-accent); text-decoration: none; }
+  .nav-actions { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+</style>
