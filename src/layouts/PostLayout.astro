@@ -1,0 +1,145 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { t } from '../i18n/translations';
+import type { Lang } from '../i18n/index';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+  lang: Lang;
+  prevPost?: CollectionEntry<'blog'> | null;
+  nextPost?: CollectionEntry<'blog'> | null;
+}
+
+const { post, lang, prevPost, nextPost } = Astro.props;
+const { title, description, date, cover, tags, location } = post.data;
+
+const dateStr = date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', {
+  year: 'numeric', month: 'long', day: 'numeric',
+});
+
+// Content Layer API: use entry.id
+const prevSlug = prevPost ? prevPost.id.split('/').slice(1).join('/') : null;
+const nextSlug = nextPost ? nextPost.id.split('/').slice(1).join('/') : null;
+---
+<BaseLayout {title} {description} image={cover} {lang}>
+  <Header {lang} />
+  <main class="container">
+    <article>
+      <header class="post-header">
+        <time class="post-date" datetime={date.toISOString()}>{dateStr}</time>
+        <h1>{title}</h1>
+        <p class="post-desc">{description}</p>
+        {tags.length > 0 && (
+          <div class="tags">
+            {tags.map(tag => <span class="tag">{tag}</span>)}
+          </div>
+        )}
+      </header>
+
+      {cover && <img src={cover} alt={title} class="cover" />}
+
+      <div class="prose" data-pagefind-body>
+        <slot />
+      </div>
+
+      {location && (
+        <section class="post-location">
+          <h2 class="location-title">📍 {t(lang, 'post.location')}：{location.name}</h2>
+          <div
+            class="location-map"
+            data-lat={String(location.lat)}
+            data-lng={String(location.lng)}
+            data-name={location.name}
+            aria-label={`${t(lang, 'post.location')}: ${location.name}`}
+          ></div>
+          <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+          <script>
+            document.addEventListener('DOMContentLoaded', async () => {
+              const el = document.querySelector('.location-map') as HTMLElement | null;
+              if (!el) return;
+              const L = (await import('leaflet')).default;
+              const lat = parseFloat(el.dataset.lat!);
+              const lng = parseFloat(el.dataset.lng!);
+              const name = el.dataset.name!;
+              const icon = L.icon({
+                iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+                shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41],
+              });
+              const map = L.map(el).setView([lat, lng], 12);
+              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                maxZoom: 19,
+              }).addTo(map);
+              L.marker([lat, lng], { icon }).addTo(map).bindPopup(name).openPopup();
+            });
+          </script>
+        </section>
+      )}
+    </article>
+
+    <nav class="post-nav">
+      {prevSlug && prevPost && (
+        <a href={`/${lang}/blog/${prevSlug}`} class="nav-prev">
+          ← {t(lang, 'post.prev')}：{prevPost.data.title}
+        </a>
+      )}
+      {nextSlug && nextPost && (
+        <a href={`/${lang}/blog/${nextSlug}`} class="nav-next">
+          {t(lang, 'post.next')}：{nextPost.data.title} →
+        </a>
+      )}
+    </nav>
+  </main>
+  <Footer {lang} />
+</BaseLayout>
+
+<style>
+  .container { max-width: var(--max-width); margin: 0 auto; padding: 2rem 1rem; }
+  .post-header { margin-bottom: 1.5rem; }
+  .post-date { font-size: 0.85rem; color: var(--color-text-muted); }
+  h1 { font-size: 2rem; margin: 0.5rem 0 0.75rem; }
+  .post-desc { color: var(--color-text-muted); margin: 0 0 1rem; }
+  .tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .tag {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .cover { width: 100%; border-radius: 10px; margin: 1.5rem 0; max-height: 500px; object-fit: cover; }
+  .prose { line-height: 1.8; }
+  .prose h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
+  .prose h3 { font-size: 1.15rem; margin: 1.5rem 0 0.5rem; }
+  .prose p { margin: 0 0 1rem; }
+  .prose img { border-radius: 8px; margin: 1.25rem 0; }
+  .prose blockquote {
+    border-left: 3px solid var(--color-accent);
+    padding-left: 1rem;
+    color: var(--color-text-muted);
+    margin: 1rem 0;
+  }
+  .post-location { margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--color-border); }
+  .location-title { font-size: 1rem; margin-bottom: 0.75rem; color: var(--color-text-muted); font-weight: 600; }
+  .location-map { height: 280px; border-radius: 10px; border: 1px solid var(--color-border); overflow: hidden; }
+  .post-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+    gap: 1rem;
+  }
+  .nav-prev, .nav-next { color: var(--color-text-muted); font-size: 0.9rem; max-width: 48%; line-height: 1.4; }
+  .nav-next { text-align: right; margin-left: auto; }
+  .nav-prev:hover, .nav-next:hover { color: var(--color-accent); text-decoration: none; }
+</style>
