@@ -1,4 +1,4 @@
-# Decap CMS 简化配置
+# Decap CMS 配置 - 简化版 Markdown 编辑器
 
 backend:
   name: github
@@ -7,27 +7,23 @@ backend:
   base_url: https://cf-blogs-oauth.zhaomo0823.workers.dev
   auth_endpoint: auth
 
-# 图片上传配置
+# 图片：直接在 Markdown 中使用图床链接
 media_folder: "public/images/uploads"
 public_folder: "/images/uploads"
 
 # 中文界面
 locale: "zh_Hans"
 
-# 集合配置
+# 集合配置 - 最小化字段
 collections:
   - name: "blog-zh"
     label: "博客文章"
     folder: "src/content/blog/zh"
     create: true
-    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    slug: "{{slug}}"
     extension: "md"
     format: "frontmatter"
     fields:
       - { label: "标题", name: "title", widget: "string" }
-      - { label: "描述", name: "description", widget: "text" }
-      - { label: "发布日期", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false }
-      - { label: "封面图", name: "cover", widget: "image", required: false }
-      - { label: "标签", name: "tags", widget: "list", required: false, default: [] }
-      - { label: "草稿", name: "draft", widget: "boolean", default: false, required: false }
-      - { label: "正文", name: "body", widget: "markdown" }
+      - { label: "日期", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false }
+      - { label: "正文", name: "body", widget: "markdown", hint: "在 frontmatter 中添加 tags: [科技, AI] 来设置标签，添加 cover: 图片URL 来设置封面" }

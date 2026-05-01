@@ -1,0 +1,14 @@
+# Cloudflare Worker 配置 - R2 图片上传服务
+name = "cf-blogs-r2"
+main = "r2-upload.js"
+compatibility_date = "2024-01-01"
+
+# R2 存储桶绑定
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "cf-blogs-images"
+
+# 路由配置（可选）
+# routes = [
+#   { pattern = "r2.zhaomo0823.workers.dev/*", zone_name = "zhaomo0823.workers.dev" }
+# ]
