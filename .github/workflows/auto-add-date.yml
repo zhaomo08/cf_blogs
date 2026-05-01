@@ -23,6 +23,9 @@ jobs:
           
       - name: 为文章添加日期
         run: node scripts/add-date-to-posts.js
+
+      - name: 校验文章内容
+        run: node scripts/validate-content.js
         
       - name: 提交更改
         run: |

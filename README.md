@@ -25,6 +25,7 @@ npm run dev
 
 常用命令：
 - `npm run dev`：开发模式
+- `npm run validate:content`：校验文章 frontmatter（标题/日期/location/tags）
 - `npm run build`：生产构建（含 Pagefind 索引）
 - `npm run preview`：本地预览构建产物
 - `npm run check`：Astro 检查
@@ -69,6 +70,16 @@ location:
 - 推荐：Cloudflare Pages 直接连接 GitHub 仓库自动部署
 - 构建命令：`npm run build`
 - 输出目录：`dist`
+
+Worker 关键环境变量：
+- `workers/wrangler.toml`（OAuth）
+  - `ALLOWED_ORIGINS`: 允许调用 OAuth 的来源域名（逗号分隔）
+  - `ALLOWED_REDIRECT_ORIGINS`: 回调后允许跳转的来源（逗号分隔）
+  - `OAUTH_STATE_SECRET`（Secret）：OAuth state 签名密钥
+- `workers/r2-wrangler.toml`（R2 上传）
+  - `ALLOWED_ORIGINS`: 允许上传请求来源（逗号分隔）
+  - `ALLOWED_GITHUB_LOGINS`: 允许上传的 GitHub 用户名（逗号分隔，小写）
+  - `MAX_UPLOAD_BYTES`: 上传大小上限（字节）
 
 ## 许可证
 MIT

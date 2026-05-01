@@ -9,9 +9,10 @@
   <style>
     .admin-tools {
       position: fixed;
-      right: 16px;
-      bottom: 16px;
+      right: max(12px, env(safe-area-inset-right));
+      bottom: calc(12px + env(safe-area-inset-bottom));
       z-index: 9999;
+      transition: transform 0.2s ease, opacity 0.2s ease;
     }
     .admin-tools button {
       border: 0;
@@ -26,6 +27,12 @@
     .admin-tools button:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+    }
+    @media (max-width: 900px) {
+      .admin-tools button {
+        font-size: 12px;
+        padding: 9px 10px;
+      }
     }
   </style>
 </head>
@@ -46,7 +53,9 @@
   <script>
     (function () {
       const LOCATION_CACHE_KEY = "cf_blogs_auto_location_v1";
+      const CMS_AUTH_STORAGE_KEYS = ["netlify-cms-user", "decap-cms-user"];
       let currentAutoLocation = null;
+      let baseViewportHeight = 0;
 
       function isVisible(node) {
         if (!node) return false;
@@ -109,14 +118,70 @@
         return insertIntoContentEditable(target, text);
       }
 
+      function readCmsAuthToken() {
+        const keys = [...CMS_AUTH_STORAGE_KEYS];
+        try {
+          for (let i = 0; i < localStorage.length; i += 1) {
+            const key = localStorage.key(i);
+            if (!key) continue;
+            const lower = key.toLowerCase();
+            if (lower.includes("cms") || lower.includes("decap") || lower.includes("netlify")) {
+              keys.push(key);
+            }
+          }
+        } catch (_) {}
+
+        for (const key of keys) {
+          let raw = null;
+          try {
+            raw = localStorage.getItem(key);
+          } catch (_) {
+            raw = null;
+          }
+          if (!raw) continue;
+
+          try {
+            const parsed = JSON.parse(raw);
+            const candidates = [
+              parsed?.token,
+              parsed?.access_token,
+              parsed?.user?.token,
+              parsed?.user?.access_token,
+              parsed?.backend?.token,
+              parsed?.github?.token,
+            ];
+            for (const candidate of candidates) {
+              if (typeof candidate === "string" && candidate.trim()) {
+                return candidate.trim();
+              }
+            }
+          } catch (_) {}
+        }
+        return "";
+      }
+
       async function uploadToR2(file) {
+        const githubToken = readCmsAuthToken();
+        if (!githubToken) {
+          throw new Error("未检测到 CMS 登录态，请先刷新页面并重新登录后台后再上传。");
+        }
         const form = new FormData();
         form.append("file", file);
         const resp = await fetch(window.R2_UPLOAD_ENDPOINT, {
           method: "POST",
+          headers: {
+            Authorization: `Bearer ${githubToken}`,
+          },
           body: form,
         });
-        if (!resp.ok) throw new Error("Upload failed: " + resp.status);
+        if (!resp.ok) {
+          let detail = "";
+          try {
+            const payload = await resp.json();
+            detail = payload?.error ? `: ${payload.error}` : "";
+          } catch (_) {}
+          throw new Error(`Upload failed (${resp.status})${detail}`);
+        }
         return resp.json();
       }
 
@@ -370,6 +435,27 @@
         window.addEventListener("pointerdown", touchHandler, { once: true });
       }
 
+      function setupMobileToolVisibility() {
+        const tools = document.querySelector(".admin-tools");
+        if (!tools) return;
+
+        const viewport = window.visualViewport;
+        const update = () => {
+          const currentHeight = viewport ? viewport.height : window.innerHeight;
+          if (!baseViewportHeight) {
+            baseViewportHeight = currentHeight;
+          }
+          const keyboardLikelyVisible = baseViewportHeight - currentHeight > 150;
+          tools.style.opacity = keyboardLikelyVisible ? "0" : "1";
+          tools.style.pointerEvents = keyboardLikelyVisible ? "none" : "auto";
+          tools.style.transform = keyboardLikelyVisible ? "translateY(8px)" : "translateY(0)";
+        };
+
+        update();
+        window.addEventListener("resize", update);
+        if (viewport) viewport.addEventListener("resize", update);
+      }
+
       CMS.registerEventListener({
         name: "preSave",
         handler: ({ entry }) => {
@@ -412,6 +498,7 @@
       });
 
       setupAutoLocation();
+      setupMobileToolVisibility();
       document.getElementById("btn-r2-upload").addEventListener("click", handleR2Upload);
       setInterval(simplifyChrome, 800);
     })();

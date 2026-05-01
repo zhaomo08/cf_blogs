@@ -3,4 +3,7 @@ main = "oauth-provider.js"
 compatibility_date = "2024-01-01"
 
 [vars]
-ALLOWED_ORIGIN = "*"
+# CORS 白名单（逗号分隔）
+ALLOWED_ORIGINS = "https://cf-blogs-4j9.pages.dev"
+# OAuth 回调允许跳转的来源（逗号分隔）
+ALLOWED_REDIRECT_ORIGINS = "https://cf-blogs-4j9.pages.dev"
