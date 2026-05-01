@@ -1,10 +1,12 @@
-# wrangler.toml
-name = "my-blog"
+# Cloudflare Pages 配置
+name = "cf-blogs"
 compatibility_date = "2024-01-01"
 
-[vars]
-SITE_NAME = "My Blog"
+# Pages 构建配置
+pages_build_output_dir = "dist"
 
-[[r2_buckets]]
-binding = "IMAGES"
-bucket_name = "blog-images"
+[build]
+command = "npm run build"
+
+[build.upload]
+format = "service-worker"
