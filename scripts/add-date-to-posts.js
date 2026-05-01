@@ -8,44 +8,35 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const blogDir = path.join(__dirname, '../src/content/blog/zh');
+const blogRoot = path.join(__dirname, '../src/content/blog');
+const langDirs = ['zh', 'en'].map((lang) => path.join(blogRoot, lang));
 
-// 获取所有 .md 文件
-const files = fs.readdirSync(blogDir).filter(f => f.endsWith('.md'));
-
-files.forEach(file => {
-  const filePath = path.join(blogDir, file);
+function addDateIfMissing(filePath) {
   let content = fs.readFileSync(filePath, 'utf-8');
-  
-  // 检查是否有 frontmatter
-  if (content.startsWith('---')) {
-    const parts = content.split('---');
-    if (parts.length >= 3) {
-      const frontmatter = parts[1];
-      
-      // 检查是否已有 date 字段
-      if (!frontmatter.includes('date:') || frontmatter.includes('date: "{{now}}"')) {
-        // 获取当前日期
-        const today = new Date().toISOString().split('T')[0];
-        
-        // 移除错误的 date 行
-        let newFrontmatter = frontmatter
-          .split('\n')
-          .filter(line => !line.includes('date:'))
-          .join('\n');
-        
-        // 添加正确的 date
-        newFrontmatter = newFrontmatter.trim() + `\ndate: ${today}\n`;
-        
-        // 重新组合内容
-        content = `---\n${newFrontmatter}---${parts.slice(2).join('---')}`;
-        
-        // 写回文件
-        fs.writeFileSync(filePath, content, 'utf-8');
-        console.log(`✅ 已为 ${file} 添加日期: ${today}`);
-      }
-    }
-  }
+  if (!content.startsWith('---')) return;
+
+  const parts = content.split('---');
+  if (parts.length < 3) return;
+
+  const frontmatter = parts[1];
+  if (frontmatter.includes('date:') && !frontmatter.includes('date: "{{now}}"')) return;
+
+  const now = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
+  let newFrontmatter = frontmatter
+    .split('\n')
+    .filter((line) => !line.trim().startsWith('date:'))
+    .join('\n');
+  newFrontmatter = `${newFrontmatter.trim()}\ndate: ${now}\n`;
+  content = `---\n${newFrontmatter}---${parts.slice(2).join('---')}`;
+
+  fs.writeFileSync(filePath, content, 'utf-8');
+  console.log(`✅ 已为 ${path.basename(filePath)} 添加日期: ${now}`);
+}
+
+langDirs.forEach((dir) => {
+  if (!fs.existsSync(dir)) return;
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith('.md'));
+  files.forEach((file) => addDateIfMissing(path.join(dir, file)));
 });
 
 console.log('✅ 完成！');

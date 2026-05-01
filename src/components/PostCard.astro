@@ -12,9 +12,11 @@ const { title, description, date, cover, tags } = post.data;
 // Content Layer API: use entry.id (e.g. "zh/hello-world"), not entry.slug
 const postSlug = post.id.split('/').slice(1).join('/');
 const href = `/${lang}/blog/${postSlug}`;
-const dateStr = date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', {
-  year: 'numeric', month: 'long', day: 'numeric',
-});
+const dateStr = date
+  ? date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', {
+      year: 'numeric', month: 'long', day: 'numeric',
+    })
+  : '';
 ---
 <article class="post-card">
   {cover && (
@@ -23,7 +25,7 @@ const dateStr = date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', {
     </a>
   )}
   <div class="card-body">
-    <time class="post-date" datetime={date.toISOString()}>{dateStr}</time>
+    {date && <time class="post-date" datetime={date.toISOString()}>{dateStr}</time>}
     <h2><a href={href}>{title}</a></h2>
     <p class="post-desc">{description}</p>
     {tags.length > 0 && (

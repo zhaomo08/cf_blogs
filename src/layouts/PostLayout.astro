@@ -16,9 +16,11 @@ interface Props {
 const { post, lang, prevPost, nextPost } = Astro.props;
 const { title, description, date, cover, tags, location } = post.data;
 
-const dateStr = date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', {
-  year: 'numeric', month: 'long', day: 'numeric',
-});
+const dateStr = date
+  ? date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', {
+      year: 'numeric', month: 'long', day: 'numeric',
+    })
+  : '';
 
 const prevSlug = prevPost ? prevPost.id.split('/').slice(1).join('/') : null;
 const nextSlug = nextPost ? nextPost.id.split('/').slice(1).join('/') : null;
@@ -29,7 +31,7 @@ const nextSlug = nextPost ? nextPost.id.split('/').slice(1).join('/') : null;
   <main class="container">
     <article>
       <header class="post-header">
-        <time class="post-date" datetime={date.toISOString()}>{dateStr}</time>
+        {date && <time class="post-date" datetime={date.toISOString()}>{dateStr}</time>}
         <h1>{title}</h1>
         <p class="post-desc">{description}</p>
         {tags.length > 0 && (

@@ -5,7 +5,11 @@ import type { Lang } from '../../../i18n/index';
 
 export async function getStaticPaths() {
   const all = await getCollection('blog', ({ data }) => !data.draft);
-  const sorted = [...all].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  const sorted = [...all].sort((a, b) => {
+    const aTs = a.data.date ? a.data.date.valueOf() : 0;
+    const bTs = b.data.date ? b.data.date.valueOf() : 0;
+    return bTs - aTs;
+  });
 
   return sorted.map(post => {
     // Content Layer API: entry.id is "zh/hello-world"

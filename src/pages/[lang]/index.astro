@@ -16,7 +16,11 @@ const { lang } = Astro.params as { lang: Lang };
 const posts = await getCollection('blog', ({ id, data }) =>
   id.startsWith(`${lang}/`) && !data.draft
 );
-const sorted = [...posts].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const sorted = [...posts].sort((a, b) => {
+  const aTs = a.data.date ? a.data.date.valueOf() : 0;
+  const bTs = b.data.date ? b.data.date.valueOf() : 0;
+  return bTs - aTs;
+});
 
 const title = lang === 'zh' ? '首页' : 'Home';
 const description = lang === 'zh' ? '我的图文博客' : 'My Photo Blog';

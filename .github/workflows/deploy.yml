@@ -1,11 +1,11 @@
-# 此 workflow 已禁用
-# 使用 Cloudflare Pages 的 GitHub 集成自动部署
-# 配置方法见 SIMPLE_DEPLOY.md
-
 name: Deploy to Cloudflare Pages
 
 on:
-  workflow_dispatch:  # 只能手动触发
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -39,7 +39,7 @@ jobs:
           projectName: cf-blogs
           directory: dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          branch: master
+          branch: ${{ github.ref_name }}
           wranglerVersion: '3'
 
       - name: Deployment URL

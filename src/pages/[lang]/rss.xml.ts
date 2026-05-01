@@ -14,7 +14,11 @@ export const GET: APIRoute = async ({ params, site }) => {
     id.startsWith(`${lang}/`) && !data.draft
   );
 
-  const sorted = [...posts].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  const sorted = [...posts].sort((a, b) => {
+    const aTs = a.data.date ? a.data.date.valueOf() : 0;
+    const bTs = b.data.date ? b.data.date.valueOf() : 0;
+    return bTs - aTs;
+  });
 
   return rss({
     title: lang === 'zh' ? '我的博客' : 'My Blog',
@@ -22,8 +26,8 @@ export const GET: APIRoute = async ({ params, site }) => {
     site: site!.toString(),
     items: sorted.map(post => ({
       title: post.data.title,
-      description: post.data.description,
-      pubDate: post.data.date,
+      description: post.data.description ?? '',
+      pubDate: post.data.date ?? new Date(0),
       link: `/${lang}/blog/${post.id.split('/').slice(1).join('/')}`,
       ...(post.data.cover ? { enclosure: { url: post.data.cover, length: 0, type: 'image/jpeg' } } : {}),
     })),

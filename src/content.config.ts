@@ -7,10 +7,15 @@ const blog = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string().optional(),
-    date: z.coerce.date().optional(), // 改为可选，如果没有就用文件时间
+    date: z.coerce.date().optional(),
     cover: z.string().url().optional(),
     tags: z.array(z.string()).default([]),
     draft: z.boolean().default(false),
+    location: z.object({
+      name: z.string(),
+      lat: z.number(),
+      lng: z.number(),
+    }).optional(),
   }),
 });
 

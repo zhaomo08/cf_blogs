@@ -6,6 +6,31 @@
   <meta name="robots" content="noindex" />
   <title>博客管理后台</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <style>
+    .admin-tools {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .admin-tools button {
+      border: 0;
+      border-radius: 8px;
+      background: #1f2937;
+      color: #fff;
+      font-size: 13px;
+      padding: 10px 12px;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    }
+    .admin-tools button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
   <!-- Decap CMS -->
@@ -14,6 +39,138 @@
   <!-- 自定义预览样式 -->
   <script>
     CMS.registerPreviewStyle("/admin/preview.css");
+  </script>
+  <div class="admin-tools">
+    <button id="btn-r2-upload" type="button">上传图片到 R2</button>
+    <button id="btn-location" type="button">填充当前位置</button>
+  </div>
+  <script>
+    window.R2_UPLOAD_ENDPOINT = "https://r2.zhaomo0823.workers.dev/upload";
+  </script>
+  <script>
+    (function () {
+      function findMarkdownInput() {
+        const active = document.activeElement;
+        if (active && active.tagName === "TEXTAREA") return active;
+        const list = document.querySelectorAll("textarea");
+        return list.length ? list[list.length - 1] : null;
+      }
+
+      function insertTextAtCursor(textarea, text) {
+        const start = textarea.selectionStart || 0;
+        const end = textarea.selectionEnd || 0;
+        const value = textarea.value || "";
+        const next = value.slice(0, start) + text + value.slice(end);
+        textarea.value = next;
+        textarea.dispatchEvent(new Event("input", { bubbles: true }));
+        const pos = start + text.length;
+        textarea.setSelectionRange(pos, pos);
+        textarea.focus();
+      }
+
+      async function uploadToR2(file) {
+        const form = new FormData();
+        form.append("file", file);
+        const resp = await fetch(window.R2_UPLOAD_ENDPOINT, {
+          method: "POST",
+          body: form,
+        });
+        if (!resp.ok) throw new Error("Upload failed: " + resp.status);
+        return resp.json();
+      }
+
+      function pickFile() {
+        return new Promise((resolve) => {
+          const input = document.createElement("input");
+          input.type = "file";
+          input.accept = "image/*";
+          input.onchange = () => resolve(input.files && input.files[0] ? input.files[0] : null);
+          input.click();
+        });
+      }
+
+      async function handleR2Upload() {
+        const btn = document.getElementById("btn-r2-upload");
+        try {
+          btn.disabled = true;
+          btn.textContent = "上传中...";
+          const file = await pickFile();
+          if (!file) return;
+          const payload = await uploadToR2(file);
+          if (!payload || !payload.url) throw new Error("Missing url");
+
+          const markdown = `![${file.name}](${payload.url})`;
+          const textarea = findMarkdownInput();
+          if (textarea) {
+            insertTextAtCursor(textarea, "\n" + markdown + "\n");
+            alert("上传成功，已插入 Markdown 图片。");
+          } else {
+            await navigator.clipboard.writeText(markdown);
+            alert("上传成功。未找到正文输入框，已复制 Markdown 到剪贴板。");
+          }
+        } catch (err) {
+          alert("上传失败: " + (err && err.message ? err.message : String(err)));
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "上传图片到 R2";
+        }
+      }
+
+      async function reverseGeocode(lat, lng) {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`;
+        const resp = await fetch(url, { headers: { Accept: "application/json" } });
+        if (!resp.ok) return "";
+        const data = await resp.json();
+        return data.display_name || "";
+      }
+
+      function setInputValueByLabelKeyword(keyword, value) {
+        const labels = Array.from(document.querySelectorAll("label"));
+        const label = labels.find((item) => (item.textContent || "").toLowerCase().includes(keyword));
+        if (!label) return false;
+        const container = label.closest("div");
+        if (!container) return false;
+        const input = container.querySelector("input");
+        if (!input) return false;
+        input.value = String(value);
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        return true;
+      }
+
+      async function handleFillLocation() {
+        const btn = document.getElementById("btn-location");
+        try {
+          btn.disabled = true;
+          btn.textContent = "定位中...";
+          if (!navigator.geolocation) throw new Error("浏览器不支持定位");
+          const position = await new Promise((resolve, reject) =>
+            navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 })
+          );
+          const lat = Number(position.coords.latitude.toFixed(6));
+          const lng = Number(position.coords.longitude.toFixed(6));
+          const name = await reverseGeocode(lat, lng);
+
+          const okLat = setInputValueByLabelKeyword("纬度", lat) || setInputValueByLabelKeyword("latitude", lat);
+          const okLng = setInputValueByLabelKeyword("经度", lng) || setInputValueByLabelKeyword("longitude", lng);
+          const okName = setInputValueByLabelKeyword("地点名称", name || `${lat}, ${lng}`) || setInputValueByLabelKeyword("name", name || `${lat}, ${lng}`);
+
+          if (!okLat || !okLng || !okName) {
+            alert("已获取当前位置，但未定位到地点输入框，请手动填写。");
+            return;
+          }
+          alert("已填充当前位置。");
+        } catch (err) {
+          alert("定位失败: " + (err && err.message ? err.message : String(err)));
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "填充当前位置";
+        }
+      }
+
+      document.getElementById("btn-r2-upload").addEventListener("click", handleR2Upload);
+      document.getElementById("btn-location").addEventListener("click", handleFillLocation);
+    })();
   </script>
 </body>
 </html>
