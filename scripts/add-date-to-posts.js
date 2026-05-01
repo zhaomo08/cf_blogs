@@ -9,7 +9,27 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const blogRoot = path.join(__dirname, '../src/content/blog');
-const langDirs = ['zh', 'en'].map((lang) => path.join(blogRoot, lang));
+
+function collectMarkdownFiles(dir) {
+  if (!fs.existsSync(dir)) return [];
+
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const files = [];
+
+  entries.forEach((entry) => {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...collectMarkdownFiles(fullPath));
+      return;
+    }
+
+    if (entry.isFile() && entry.name.endsWith('.md')) {
+      files.push(fullPath);
+    }
+  });
+
+  return files;
+}
 
 function addDateIfMissing(filePath) {
   let content = fs.readFileSync(filePath, 'utf-8');
@@ -33,10 +53,6 @@ function addDateIfMissing(filePath) {
   console.log(`✅ 已为 ${path.basename(filePath)} 添加日期: ${now}`);
 }
 
-langDirs.forEach((dir) => {
-  if (!fs.existsSync(dir)) return;
-  const files = fs.readdirSync(dir).filter((f) => f.endsWith('.md'));
-  files.forEach((file) => addDateIfMissing(path.join(dir, file)));
-});
+collectMarkdownFiles(blogRoot).forEach((filePath) => addDateIfMissing(filePath));
 
 console.log('✅ 完成！');

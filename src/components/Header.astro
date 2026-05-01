@@ -1,6 +1,5 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
-import LanguageSwitcher from './LanguageSwitcher.astro';
 import { t } from '../i18n/translations';
 import type { Lang } from '../i18n/index';
 
@@ -11,14 +10,13 @@ const { lang } = Astro.props;
 ---
 <header>
   <nav class="nav-inner">
-    <a href={`/${lang}/`} class="logo">📷 Blog</a>
+    <a href="/" class="logo">📷 Blog</a>
     <div class="nav-links">
-      <a href={`/${lang}/`}>{t(lang, 'nav.home')}</a>
+      <a href="/">{t(lang, 'nav.home')}</a>
       <a href="/search">{t(lang, 'nav.search')}</a>
-      <a href={`/${lang}/rss.xml`} title="RSS">{t(lang, 'nav.rss')}</a>
+      <a href="/rss.xml" title="RSS">{t(lang, 'nav.rss')}</a>
     </div>
     <div class="nav-actions">
-      <LanguageSwitcher currentLang={lang} />
       <ThemeToggle />
     </div>
   </nav>

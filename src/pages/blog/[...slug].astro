@@ -1,0 +1,41 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import PostLayout from '../../layouts/PostLayout.astro';
+import type { Lang } from '../../i18n/index';
+
+function detectLangFromId(id: string): Lang {
+  return id.startsWith('en/') ? 'en' : 'zh';
+}
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  const sorted = [...posts].sort((a, b) => {
+    const aTs = a.data.date ? a.data.date.valueOf() : 0;
+    const bTs = b.data.date ? b.data.date.valueOf() : 0;
+    return bTs - aTs;
+  });
+
+  return sorted.map((post, index) => ({
+    params: { slug: post.id },
+    props: {
+      post,
+      lang: detectLangFromId(post.id),
+      prevPost: sorted[index + 1] ?? null,
+      nextPost: sorted[index - 1] ?? null,
+    },
+  }));
+}
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+  lang: Lang;
+  prevPost?: CollectionEntry<'blog'> | null;
+  nextPost?: CollectionEntry<'blog'> | null;
+}
+
+const { post, lang, prevPost, nextPost } = Astro.props as Props;
+const { Content } = await render(post);
+---
+<PostLayout {post} {lang} {prevPost} {nextPost}>
+  <Content />
+</PostLayout>

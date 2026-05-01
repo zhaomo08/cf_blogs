@@ -22,8 +22,12 @@ const dateStr = date
     })
   : '';
 
-const prevSlug = prevPost ? prevPost.id.split('/').slice(1).join('/') : null;
-const nextSlug = nextPost ? nextPost.id.split('/').slice(1).join('/') : null;
+const prevHref = prevPost
+  ? `/blog/${prevPost.id.split('/').map((segment) => encodeURIComponent(segment)).join('/')}`
+  : null;
+const nextHref = nextPost
+  ? `/blog/${nextPost.id.split('/').map((segment) => encodeURIComponent(segment)).join('/')}`
+  : null;
 ---
 <BaseLayout {title} {description} image={cover} {lang}>
   {location && <link slot="head" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />}
@@ -62,13 +66,13 @@ const nextSlug = nextPost ? nextPost.id.split('/').slice(1).join('/') : null;
     </article>
 
     <nav class="post-nav">
-      {prevSlug && prevPost && (
-        <a href={`/${lang}/blog/${prevSlug}`} class="nav-prev">
+      {prevHref && prevPost && (
+        <a href={prevHref} class="nav-prev">
           ← {t(lang, 'post.prev')}：{prevPost.data.title}
         </a>
       )}
-      {nextSlug && nextPost && (
-        <a href={`/${lang}/blog/${nextSlug}`} class="nav-next">
+      {nextHref && nextPost && (
+        <a href={nextHref} class="nav-next">
           {t(lang, 'post.next')}：{nextPost.data.title} →
         </a>
       )}

@@ -1,39 +1,23 @@
 ---
-import { getCollection, render } from 'astro:content';
-import PostLayout from '../../../layouts/PostLayout.astro';
-import type { Lang } from '../../../i18n/index';
+import { getCollection } from 'astro:content';
+import { SUPPORTED_LANGS, type Lang } from '../../../i18n/index';
 
 export async function getStaticPaths() {
-  const all = await getCollection('blog', ({ data }) => !data.draft);
-  const sorted = [...all].sort((a, b) => {
-    const aTs = a.data.date ? a.data.date.valueOf() : 0;
-    const bTs = b.data.date ? b.data.date.valueOf() : 0;
-    return bTs - aTs;
+  const posts = await getCollection('blog', ({ id, data }) => {
+    if (data.draft) return false;
+    return SUPPORTED_LANGS.some((lang) => id.startsWith(`${lang}/`));
   });
 
-  return sorted.map(post => {
-    // Content Layer API: entry.id is "zh/hello-world"
-    const [lang, ...rest] = post.id.split('/');
-    const slug = rest.join('/');
-    const langPosts = sorted.filter(p => p.id.startsWith(`${lang}/`));
-    const idx = langPosts.findIndex(p => p.id === post.id);
-
+  return posts.map((post) => {
+    const [lang, slug] = post.id.split('/');
     return {
       params: { lang, slug },
-      props: {
-        post,
-        prevPost: langPosts[idx + 1] ?? null,
-        nextPost: langPosts[idx - 1] ?? null,
-      },
     };
   });
 }
 
-const { post, prevPost, nextPost } = Astro.props;
-const { lang } = Astro.params as { lang: Lang };
-// Content Layer API: use render() function, not entry.render()
-const { Content } = await render(post);
+const { lang, slug } = Astro.params as { lang: Lang; slug: string };
+const encodedLang = encodeURIComponent(lang);
+const encodedSlug = slug.split('/').map((segment) => encodeURIComponent(segment)).join('/');
+return Astro.redirect(`/blog/${encodedLang}/${encodedSlug}`, 301);
 ---
-<PostLayout {post} {lang} {prevPost} {nextPost}>
-  <Content />
-</PostLayout>

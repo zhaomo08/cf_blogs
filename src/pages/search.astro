@@ -2,6 +2,15 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 
+type PostSummary = {
+  id: string;
+  title: string;
+  description: string;
+  tags: string[];
+  href: string;
+  dateLabel: string;
+};
+
 const posts = await getCollection('blog', ({ data }) => !data.draft);
 const sorted = [...posts].sort((a, b) => {
   const aTs = a.data.date ? a.data.date.valueOf() : 0;
@@ -9,11 +18,10 @@ const sorted = [...posts].sort((a, b) => {
   return bTs - aTs;
 });
 
-const postSummaries = sorted.map((post) => {
-  const [lang, ...rest] = post.id.split('/');
-  const slug = rest.join('/');
+const postSummaries: PostSummary[] = sorted.map((post) => {
+  const locale = post.id.startsWith('en/') ? 'en-US' : 'zh-CN';
   const dateLabel = post.data.date
-    ? post.data.date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', {
+    ? post.data.date.toLocaleDateString(locale, {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -22,20 +30,17 @@ const postSummaries = sorted.map((post) => {
 
   return {
     id: post.id,
-    lang,
     title: post.data.title,
     description: post.data.description ?? '',
-    tags: post.data.tags ?? [],
-    href: `/${lang}/blog/${slug}`,
+    tags: (post.data.tags ?? []).map((tag) => String(tag || '').trim()).filter(Boolean),
+    href: `/blog/${post.id.split('/').map((segment) => encodeURIComponent(segment)).join('/')}`,
     dateLabel,
   };
 });
 
 const tagCountMap = new Map<string, number>();
 for (const post of postSummaries) {
-  for (const rawTag of post.tags) {
-    const tag = String(rawTag || '').trim();
-    if (!tag) continue;
+  for (const tag of post.tags) {
     tagCountMap.set(tag, (tagCountMap.get(tag) ?? 0) + 1);
   }
 }
@@ -50,6 +55,11 @@ const tagCloud = [...tagCountMap.entries()]
     const delay = (index % 7) * 0.18;
     return { tag, count, size: Number(size.toFixed(2)), delay: Number(delay.toFixed(2)) };
   });
+
+const tagGroups = tagCloud.map((item) => ({
+  ...item,
+  posts: postSummaries.filter((post) => post.tags.includes(item.tag)),
+}));
 ---
 <BaseLayout title="搜索 / Search" description="搜索博客文章">
   <Fragment slot="head">
@@ -85,69 +95,57 @@ const tagCloud = [...tagCountMap.entries()]
 
     <section class="tag-results" id="tag-results" hidden>
       <h2 id="tag-results-title"></h2>
-      <ul id="tag-results-list"></ul>
-      <p id="tag-results-empty" class="empty" hidden>该标签下暂无文章 / No posts under this tag</p>
+      {tagGroups.map((group) => (
+        <div class="tag-group" data-tag-group={group.tag} hidden>
+          {group.posts.length === 0 ? (
+            <p class="empty">该标签下暂无文章 / No posts under this tag</p>
+          ) : (
+            <ul>
+              {group.posts.map((post) => (
+                <li>
+                  <a href={post.href}>{post.title}</a>
+                  {post.dateLabel && <small>{post.dateLabel}</small>}
+                  {post.description && <p>{post.description}</p>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ))}
     </section>
   </main>
-
-  <script id="post-summaries" type="application/json">
-    {JSON.stringify(postSummaries)}
-  </script>
 
   <Fragment slot="scripts">
     <script is:inline src="/pagefind/pagefind-ui.js"></script>
     <script is:inline>
       window.addEventListener('DOMContentLoaded', function() {
-        new PagefindUI({
-          element: '#search',
-          showImages: true,
-          showEmptyFilters: false,
-          highlightParam: 'highlight',
-        });
+        if (typeof window.PagefindUI === 'function') {
+          new window.PagefindUI({
+            element: '#search',
+            showImages: true,
+            showEmptyFilters: false,
+            highlightParam: 'highlight',
+          });
+        }
 
-        const postDataEl = document.getElementById('post-summaries');
-        const posts = postDataEl ? JSON.parse(postDataEl.textContent || '[]') : [];
         const tagButtons = Array.from(document.querySelectorAll('.tag-float'));
         const clearButton = document.getElementById('clear-tag');
         const resultWrap = document.getElementById('tag-results');
         const resultTitle = document.getElementById('tag-results-title');
-        const resultList = document.getElementById('tag-results-list');
-        const resultEmpty = document.getElementById('tag-results-empty');
+        const tagGroups = Array.from(document.querySelectorAll('[data-tag-group]'));
 
-        function renderTagPosts(tag) {
-          const filtered = posts.filter((post) => (post.tags || []).includes(tag));
-          resultTitle.textContent = `#${tag} (${filtered.length})`;
-          resultList.innerHTML = '';
+        if (!clearButton || !resultWrap || !resultTitle) {
+          return;
+        }
 
-          if (filtered.length === 0) {
-            resultEmpty.hidden = false;
-          } else {
-            resultEmpty.hidden = true;
-            filtered.forEach((post) => {
-              const li = document.createElement('li');
-              const link = document.createElement('a');
-              link.href = post.href;
-              link.textContent = post.title;
-              li.appendChild(link);
-
-              if (post.dateLabel) {
-                const meta = document.createElement('small');
-                meta.textContent = post.dateLabel;
-                li.appendChild(meta);
-              }
-
-              if (post.description) {
-                const desc = document.createElement('p');
-                desc.textContent = post.description;
-                li.appendChild(desc);
-              }
-
-              resultList.appendChild(li);
-            });
-          }
-
-          resultWrap.hidden = false;
-          clearButton.hidden = false;
+        function showTagGroup(tag) {
+          let matched = false;
+          tagGroups.forEach((group) => {
+            const visible = group.getAttribute('data-tag-group') === tag;
+            group.hidden = !visible;
+            if (visible) matched = true;
+          });
+          return matched;
         }
 
         function setActiveTag(tag) {
@@ -155,7 +153,16 @@ const tagCloud = [...tagCountMap.entries()]
             const active = button.dataset.tag === tag;
             button.classList.toggle('active', active);
           });
-          renderTagPosts(tag);
+
+          const matched = showTagGroup(tag);
+          if (!matched) return;
+
+          const countText = tagButtons.find((button) => button.dataset.tag === tag)
+            ?.querySelector('small')
+            ?.textContent?.trim() || '0';
+          resultTitle.textContent = `#${tag} (${countText})`;
+          resultWrap.hidden = false;
+          clearButton.hidden = false;
 
           const url = new URL(window.location.href);
           url.searchParams.set('tag', tag);
@@ -164,6 +171,9 @@ const tagCloud = [...tagCountMap.entries()]
 
         function clearActiveTag() {
           tagButtons.forEach((button) => button.classList.remove('active'));
+          tagGroups.forEach((group) => {
+            group.hidden = true;
+          });
           resultWrap.hidden = true;
           clearButton.hidden = true;
 

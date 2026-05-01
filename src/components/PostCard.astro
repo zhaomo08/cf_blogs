@@ -4,16 +4,15 @@ import type { Lang } from '../i18n/index';
 
 interface Props {
   post: CollectionEntry<'blog'>;
-  lang: Lang;
+  lang?: Lang;
 }
-const { post, lang } = Astro.props;
+const { post, lang = 'zh' } = Astro.props;
 const { title, description, date, cover, tags } = post.data;
 
-// Content Layer API: use entry.id (e.g. "zh/hello-world"), not entry.slug
-const postSlug = post.id.split('/').slice(1).join('/');
-const href = `/${lang}/blog/${postSlug}`;
+const guessedLang: Lang = post.id.startsWith('en/') ? 'en' : post.id.startsWith('zh/') ? 'zh' : lang;
+const href = `/blog/${post.id.split('/').map((segment) => encodeURIComponent(segment)).join('/')}`;
 const dateStr = date
-  ? date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', {
+  ? date.toLocaleDateString(guessedLang === 'en' ? 'en-US' : 'zh-CN', {
       year: 'numeric', month: 'long', day: 'numeric',
     })
   : '';
