@@ -1,12 +1,11 @@
+# 此 workflow 已禁用
+# 使用 Cloudflare Pages 的 GitHub 集成自动部署
+# 配置方法见 SIMPLE_DEPLOY.md
+
 name: Deploy to Cloudflare Pages
 
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
+  workflow_dispatch:  # 只能手动触发
 
 jobs:
   deploy:
@@ -22,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -32,6 +31,7 @@ jobs:
         run: npm run build
 
       - name: Publish to Cloudflare Pages
+        id: cloudflare
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -40,3 +40,8 @@ jobs:
           directory: dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           branch: master
+          wranglerVersion: '3'
+
+      - name: Deployment URL
+        if: success()
+        run: echo "Deployed to ${{ steps.cloudflare.outputs.url }}"
