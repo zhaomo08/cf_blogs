@@ -1,0 +1,32 @@
+name: 自动添加文章日期
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'src/content/blog/**/*.md'
+
+jobs:
+  add-date:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          
+      - name: 为文章添加日期
+        run: node scripts/add-date-to-posts.js
+        
+      - name: 提交更改
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -A
+          git diff --quiet && git diff --staged --quiet || git commit -m "自动添加文章日期 [skip ci]"
+          git push

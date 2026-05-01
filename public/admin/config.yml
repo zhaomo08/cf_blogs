@@ -25,5 +25,4 @@ collections:
     format: "frontmatter"
     fields:
       - { label: "标题", name: "title", widget: "string" }
-      - { label: "发布日期", name: "date", widget: "hidden", default: "{{now}}" }
-      - { label: "正文", name: "body", widget: "markdown", hint: "可以在正文中添加 tags: [科技, AI] 来设置标签，添加图片链接等" }
+      - { label: "正文", name: "body", widget: "markdown", hint: "可以在正文中添加 tags: [科技, AI] 来设置标签" }
