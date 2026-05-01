@@ -12,9 +12,6 @@
       right: 16px;
       bottom: 16px;
       z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
     }
     .admin-tools button {
       border: 0;
@@ -33,20 +30,19 @@
   </style>
 </head>
 <body>
-  <!-- Decap CMS -->
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
-  
-  <!-- 自定义预览样式 -->
   <script>
     CMS.registerPreviewStyle("/admin/preview.css");
   </script>
+
   <div class="admin-tools">
     <button id="btn-r2-upload" type="button">上传图片到 R2</button>
-    <button id="btn-location" type="button">填充当前位置</button>
   </div>
+
   <script>
     window.R2_UPLOAD_ENDPOINT = "https://r2.zhaomo0823.workers.dev/upload";
   </script>
+
   <script>
     (function () {
       function findMarkdownInput() {
@@ -116,60 +112,84 @@
         }
       }
 
-      async function reverseGeocode(lat, lng) {
-        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`;
-        const resp = await fetch(url, { headers: { Accept: "application/json" } });
-        if (!resp.ok) return "";
-        const data = await resp.json();
-        return data.display_name || "";
-      }
+      function parseMetaBlock(body) {
+        const source = String(body || "");
+        const match = source.match(/^\s*<!--\s*meta\s*([\s\S]*?)-->\s*/i);
+        if (!match) {
+          return { body: source, description: "", tags: null };
+        }
 
-      function setInputValueByLabelKeyword(keyword, value) {
-        const labels = Array.from(document.querySelectorAll("label"));
-        const label = labels.find((item) => (item.textContent || "").toLowerCase().includes(keyword));
-        if (!label) return false;
-        const container = label.closest("div");
-        if (!container) return false;
-        const input = container.querySelector("input");
-        if (!input) return false;
-        input.value = String(value);
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-        input.dispatchEvent(new Event("change", { bubbles: true }));
-        return true;
-      }
+        const metaText = match[1] || "";
+        const nextBody = source.replace(match[0], "");
+        let description = "";
+        let tags = null;
 
-      async function handleFillLocation() {
-        const btn = document.getElementById("btn-location");
-        try {
-          btn.disabled = true;
-          btn.textContent = "定位中...";
-          if (!navigator.geolocation) throw new Error("浏览器不支持定位");
-          const position = await new Promise((resolve, reject) =>
-            navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 })
-          );
-          const lat = Number(position.coords.latitude.toFixed(6));
-          const lng = Number(position.coords.longitude.toFixed(6));
-          const name = await reverseGeocode(lat, lng);
+        metaText.split(/\r?\n/).forEach((line) => {
+          const item = line.trim();
+          if (!item) return;
 
-          const okLat = setInputValueByLabelKeyword("纬度", lat) || setInputValueByLabelKeyword("latitude", lat);
-          const okLng = setInputValueByLabelKeyword("经度", lng) || setInputValueByLabelKeyword("longitude", lng);
-          const okName = setInputValueByLabelKeyword("地点名称", name || `${lat}, ${lng}`) || setInputValueByLabelKeyword("name", name || `${lat}, ${lng}`);
+          const kv = item.match(/^([a-zA-Z_]+)\s*:\s*(.+)$/);
+          if (!kv) return;
+          const key = kv[1].toLowerCase();
+          const value = kv[2].trim();
 
-          if (!okLat || !okLng || !okName) {
-            alert("已获取当前位置，但未定位到地点输入框，请手动填写。");
+          if (key === "description" || key === "desc") {
+            description = value;
             return;
           }
-          alert("已填充当前位置。");
-        } catch (err) {
-          alert("定位失败: " + (err && err.message ? err.message : String(err)));
-        } finally {
-          btn.disabled = false;
-          btn.textContent = "填充当前位置";
-        }
+
+          if (key === "tags") {
+            tags = value
+              .split(/[，,]/)
+              .map((v) => v.trim())
+              .filter(Boolean);
+          }
+        });
+
+        return { body: nextBody, description, tags };
       }
 
+      function simplifyChrome() {
+        const navLinks = Array.from(document.querySelectorAll("a, button, span"));
+        navLinks.forEach((el) => {
+          const text = (el.textContent || "").trim().toLowerCase();
+          if (text === "工作流" || text === "workflow" || text === "媒体" || text === "media") {
+            const node = el.closest("a,button,li,div") || el;
+            node.style.display = "none";
+          }
+        });
+      }
+
+      CMS.registerEventListener({
+        name: "preSave",
+        handler: ({ entry }) => {
+          const data = entry.get("data");
+          const body = data.get("body") || "";
+          const parsed = parseMetaBlock(body);
+
+          let next = data.set("body", parsed.body);
+
+          if (!data.get("date")) {
+            next = next.set("date", new Date().toISOString());
+          }
+
+          if (parsed.description) {
+            next = next.set("description", parsed.description);
+          }
+
+          if (parsed.tags) {
+            const tagsValue = window.Immutable && window.Immutable.fromJS
+              ? window.Immutable.fromJS(parsed.tags)
+              : parsed.tags;
+            next = next.set("tags", tagsValue);
+          }
+
+          return next;
+        },
+      });
+
       document.getElementById("btn-r2-upload").addEventListener("click", handleR2Upload);
-      document.getElementById("btn-location").addEventListener("click", handleFillLocation);
+      setInterval(simplifyChrome, 800);
     })();
   </script>
 </body>

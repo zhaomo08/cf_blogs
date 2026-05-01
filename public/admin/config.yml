@@ -8,10 +8,8 @@ backend:
 locale: zh_Hans
 site_url: https://cf-blogs-4j9.pages.dev
 display_url: https://cf-blogs-4j9.pages.dev
+publish_mode: simple
 
-publish_mode: editorial_workflow
-
-# 不再使用仓库内 media_folder 上传，图片统一走 R2 上传按钮并插入 Markdown URL。
 media_folder: "public/images/uploads"
 public_folder: "https://r2.zhaomo0823.workers.dev/images/uploads"
 
@@ -20,48 +18,54 @@ collections:
     label: "中文博客"
     folder: "src/content/blog/zh"
     create: true
-    slug: "{{slug}}"
+    slug: "{{year}}-{{month}}-{{day}}-{{hour}}{{minute}}{{second}}"
     extension: "md"
     format: "frontmatter"
     preview_path: "zh/blog/{{slug}}"
+    editor:
+      preview: false
     fields:
       - { label: "标题", name: "title", widget: "string" }
-      - { label: "摘要", name: "description", widget: "text", required: false }
-      - { label: "发布日期", name: "date", widget: "datetime", default: "{{now}}", date_format: "YYYY-MM-DD", time_format: "HH:mm:ss", format: "YYYY-MM-DDTHH:mm:ssZ" }
-      - { label: "封面图 URL", name: "cover", widget: "string", required: false, hint: "可直接粘贴图片链接（R2/外链都可）" }
-      - { label: "标签", name: "tags", widget: "list", required: false, default: [] }
-      - label: "地点"
-        name: "location"
-        widget: "object"
-        required: false
-        collapsed: false
-        fields:
-          - { label: "地点名称", name: "name", widget: "string", required: false, hint: "编辑页会尝试自动填充当前位置" }
-          - { label: "纬度", name: "lat", widget: "number", value_type: "float", required: false }
-          - { label: "经度", name: "lng", widget: "number", value_type: "float", required: false }
-      - { label: "正文（Markdown）", name: "body", widget: "markdown", hint: "粘贴图片 URL 可直接显示；本地图片请使用页面右下角“上传图片到 R2”按钮" }
+      - { label: "发布时间", name: "date", widget: "hidden", default: "{{now}}" }
+      - { label: "摘要", name: "description", widget: "hidden", required: false, default: "" }
+      - { label: "标签", name: "tags", widget: "hidden", required: false, default: [] }
+      - { label: "草稿", name: "draft", widget: "hidden", default: false }
+      - label: "正文（Markdown）"
+        name: "body"
+        widget: "markdown"
+        modes: ["raw"]
+        hint: |
+          可选元信息请写在正文最上方（保存时会自动提取并从正文删除）：
+          <!--meta
+          description: 这里写摘要
+          tags: 摄影, 旅行, 生活
+          -->
+          直接粘贴图片 URL 可显示；本地图片用右下角“上传图片到 R2”按钮。
 
   - name: "blog_en"
     label: "English Blog"
     folder: "src/content/blog/en"
     create: true
-    slug: "{{slug}}"
+    slug: "{{year}}-{{month}}-{{day}}-{{hour}}{{minute}}{{second}}"
     extension: "md"
     format: "frontmatter"
     preview_path: "en/blog/{{slug}}"
+    editor:
+      preview: false
     fields:
       - { label: "Title", name: "title", widget: "string" }
-      - { label: "Description", name: "description", widget: "text", required: false }
-      - { label: "Published At", name: "date", widget: "datetime", default: "{{now}}", date_format: "YYYY-MM-DD", time_format: "HH:mm:ss", format: "YYYY-MM-DDTHH:mm:ssZ" }
-      - { label: "Cover URL", name: "cover", widget: "string", required: false, hint: "Paste image URL directly (R2 or external)" }
-      - { label: "Tags", name: "tags", widget: "list", required: false, default: [] }
-      - label: "Location"
-        name: "location"
-        widget: "object"
-        required: false
-        collapsed: false
-        fields:
-          - { label: "Name", name: "name", widget: "string", required: false, hint: "Current location can be auto-filled in editor" }
-          - { label: "Latitude", name: "lat", widget: "number", value_type: "float", required: false }
-          - { label: "Longitude", name: "lng", widget: "number", value_type: "float", required: false }
-      - { label: "Body (Markdown)", name: "body", widget: "markdown", hint: "Paste image URL to render directly; for local files use the bottom-right 'Upload image to R2' button" }
+      - { label: "Published At", name: "date", widget: "hidden", default: "{{now}}" }
+      - { label: "Description", name: "description", widget: "hidden", required: false, default: "" }
+      - { label: "Tags", name: "tags", widget: "hidden", required: false, default: [] }
+      - { label: "Draft", name: "draft", widget: "hidden", default: false }
+      - label: "Body (Markdown)"
+        name: "body"
+        widget: "markdown"
+        modes: ["raw"]
+        hint: |
+          Optional metadata at top (auto-extracted and removed on save):
+          <!--meta
+          description: write summary here
+          tags: travel, photo, life
+          -->
+          Paste image URL directly, or use the bottom-right "Upload image to R2" button.
