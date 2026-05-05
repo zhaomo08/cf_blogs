@@ -29,7 +29,7 @@ collections:
       - { label: "标题", name: "title", widget: "string" }
       - { label: "发布时间", name: "date", widget: "hidden", default: "" }
       - { label: "摘要", name: "description", widget: "hidden", required: false, default: "" }
-      - { label: "封面", name: "cover", widget: "hidden", required: false, default: "" }
+      - { label: "封面图片 URL", name: "cover", widget: "string", required: false, default: "", hint: "可选。填写后将作为文章顶部封面；留空则自动取正文第一张图片。" }
       - { label: "标签", name: "tags", widget: "hidden", required: false, default: [] }
       - { label: "草稿", name: "draft", widget: "hidden", default: false }
       - label: "正文（Markdown / 富文本）"
