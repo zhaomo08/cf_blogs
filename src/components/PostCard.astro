@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import type { Lang } from '../i18n/index';
+import { buildOptimizedImageUrl, buildOptimizedSrcSet } from '../utils/image';
 
 interface Props {
   post: CollectionEntry<'blog'>;
@@ -11,6 +12,8 @@ const { title, description, date, cover, tags } = post.data;
 
 const guessedLang: Lang = post.id.startsWith('en/') ? 'en' : post.id.startsWith('zh/') ? 'zh' : lang;
 const href = `/blog/${post.id.split('/').map((segment) => encodeURIComponent(segment)).join('/')}`;
+const coverSrc = cover ? buildOptimizedImageUrl(cover, { width: 720, fit: 'crop' }) : '';
+const coverSrcSet = cover ? buildOptimizedSrcSet(cover, [360, 540, 720, 960], 75) : '';
 const dateStr = date
   ? date.toLocaleDateString(guessedLang === 'en' ? 'en-US' : 'zh-CN', {
       year: 'numeric', month: 'long', day: 'numeric',
@@ -20,7 +23,14 @@ const dateStr = date
 <article class="post-card">
   {cover && (
     <a href={href} class="card-image-link">
-      <img src={cover} alt={title} loading="lazy" />
+      <img
+        src={coverSrc || cover}
+        srcset={coverSrcSet || undefined}
+        sizes="(max-width: 600px) 100vw, (max-width: 1024px) 50vw, 360px"
+        alt={title}
+        loading="lazy"
+        decoding="async"
+      />
     </a>
   )}
   <div class="card-body">
@@ -51,6 +61,7 @@ const dateStr = date
   img {
     width: 100%;
     height: 200px;
+    aspect-ratio: 16 / 10;
     object-fit: cover;
     transition: opacity 0.2s;
   }

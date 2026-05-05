@@ -5,6 +5,7 @@ import Footer from '../components/Footer.astro';
 import { t } from '../i18n/translations';
 import type { Lang } from '../i18n/index';
 import type { CollectionEntry } from 'astro:content';
+import { buildOptimizedImageUrl, buildOptimizedSrcSet } from '../utils/image';
 
 interface Props {
   post: CollectionEntry<'blog'>;
@@ -15,6 +16,8 @@ interface Props {
 
 const { post, lang, prevPost, nextPost } = Astro.props;
 const { title, description, date, cover, tags, location } = post.data;
+const coverSrc = cover ? buildOptimizedImageUrl(cover, { width: 1280, fit: 'max' }) : '';
+const coverSrcSet = cover ? buildOptimizedSrcSet(cover, [640, 960, 1280, 1600], 78) : '';
 
 const dateStr = date
   ? date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', {
@@ -45,7 +48,18 @@ const nextHref = nextPost
         )}
       </header>
 
-      {cover && <img src={cover} alt={title} class="cover" />}
+      {cover && (
+        <img
+          src={coverSrc || cover}
+          srcset={coverSrcSet || undefined}
+          sizes="(max-width: 800px) 100vw, 760px"
+          alt={title}
+          class="cover"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      )}
 
       <div class="prose" data-pagefind-body>
         <slot />
@@ -80,6 +94,16 @@ const nextHref = nextPost
   </main>
   <Footer {lang} />
 </BaseLayout>
+
+<script is:inline>
+  window.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.prose img').forEach((img) => {
+      if (!(img instanceof HTMLImageElement)) return;
+      if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy');
+      if (!img.hasAttribute('decoding')) img.setAttribute('decoding', 'async');
+    });
+  });
+</script>
 
 {location && (
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" is:inline></script>
@@ -118,7 +142,14 @@ const nextHref = nextPost
     font-size: 0.8rem;
     color: var(--color-text-muted);
   }
-  .cover { width: 100%; border-radius: 10px; margin: 1.5rem 0; max-height: 500px; object-fit: cover; }
+  .cover {
+    width: 100%;
+    border-radius: 10px;
+    margin: 1.5rem 0;
+    max-height: 500px;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
   .prose { line-height: 1.8; }
   .prose h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
   .prose h3 { font-size: 1.15rem; margin: 1.5rem 0 0.5rem; }
@@ -144,4 +175,23 @@ const nextHref = nextPost
   .nav-prev, .nav-next { color: var(--color-text-muted); font-size: 0.9rem; max-width: 48%; line-height: 1.4; }
   .nav-next { text-align: right; margin-left: auto; }
   .nav-prev:hover, .nav-next:hover { color: var(--color-accent); text-decoration: none; }
+  @media (max-width: 720px) {
+    .container { padding: 1.2rem 0.9rem; }
+    h1 { font-size: 1.65rem; }
+    .post-nav {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+    }
+    .nav-prev, .nav-next {
+      max-width: 100%;
+      text-align: left;
+      margin-left: 0;
+      padding: 0.65rem 0.8rem;
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      background: var(--color-bg-secondary);
+    }
+    .location-map { height: 220px; }
+  }
 </style>
