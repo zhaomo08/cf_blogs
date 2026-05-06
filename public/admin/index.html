@@ -221,24 +221,15 @@
         }
       }
 
-      function splitTags(text) {
-        return text
-          .split(/[，,、]/)
-          .map((v) => v.trim())
-          .filter(Boolean);
-      }
-
       function parseCommentMetaBlock(body) {
         const source = String(body || "");
         const match = source.match(/^\s*<!--\s*meta\s*([\s\S]*?)-->\s*/i);
         if (!match) {
-          return { body: source, description: "", tags: null, cover: "" };
+          return { body: source, cover: "" };
         }
 
         const metaText = match[1] || "";
         const nextBody = source.replace(match[0], "");
-        let description = "";
-        let tags = null;
         let cover = "";
 
         metaText.split(/\r?\n/).forEach((line) => {
@@ -250,22 +241,12 @@
           const key = kv[1].toLowerCase();
           const value = kv[2].trim();
 
-          if (key === "description" || key === "desc") {
-            description = value;
-            return;
-          }
-
-          if (key === "tags") {
-            tags = splitTags(value);
-            return;
-          }
-
           if (key === "cover" || key === "image") {
             cover = value;
           }
         });
 
-        return { body: nextBody, description, tags, cover };
+        return { body: nextBody, cover };
       }
 
       function parseInlineMetaSyntax(body) {
@@ -274,29 +255,9 @@
         let idx = 0;
         while (idx < lines.length && !lines[idx].trim()) idx += 1;
 
-        let tags = null;
-        let description = "";
         let cover = "";
         let consumedUntil = idx;
         let hasMeta = false;
-
-        const tagsMatch = lines[idx] && lines[idx].trim().match(/^\[(.+)\]\s*$/);
-        if (tagsMatch) {
-          tags = splitTags(tagsMatch[1] || "");
-          consumedUntil = idx + 1;
-          hasMeta = true;
-          idx += 1;
-          while (idx < lines.length && !lines[idx].trim()) idx += 1;
-        }
-
-        const descMatch = lines[idx] && lines[idx].trim().match(/^\((.+)\)\s*$/);
-        if (descMatch) {
-          description = (descMatch[1] || "").trim();
-          consumedUntil = idx + 1;
-          hasMeta = true;
-          idx += 1;
-          while (idx < lines.length && !lines[idx].trim()) idx += 1;
-        }
 
         const coverMatch = lines[idx] && lines[idx].trim().match(/^(?:cover|封面)\s*:\s*(https?:\/\/\S+)\s*$/i);
         if (coverMatch) {
@@ -306,12 +267,12 @@
         }
 
         if (!hasMeta) {
-          return { body: source, description: "", tags: null, cover: "" };
+          return { body: source, cover: "" };
         }
 
         const bodyLines = lines.slice(consumedUntil);
         const cleanedBody = bodyLines.join("\n").replace(/^\s+/, "");
-        return { body: cleanedBody, description, tags, cover };
+        return { body: cleanedBody, cover };
       }
 
       function extractFirstMarkdownImage(body) {
@@ -359,8 +320,6 @@
         const finalBody = fromInline.body;
         return {
           body: finalBody,
-          description: fromInline.description || fromComment.description,
-          tags: fromInline.tags || fromComment.tags,
           cover: normalizeCoverUrl(fromInline.cover || fromComment.cover || extractFirstMarkdownImage(finalBody)),
         };
       }
@@ -523,20 +482,12 @@
           let next = data.set("body", parsed.body);
           next = next.set("date", normalizeDateValue(data.get("date")));
 
-          if (parsed.description) {
-            next = next.set("description", parsed.description);
-          } else {
+          const existingDescription = String(data.get("description") || "").trim();
+          if (!existingDescription) {
             const fallbackDescription = extractFirstParagraph(parsed.body);
             if (fallbackDescription) {
               next = next.set("description", fallbackDescription);
             }
-          }
-
-          if (parsed.tags) {
-            const tagsValue = window.Immutable && window.Immutable.fromJS
-              ? window.Immutable.fromJS(parsed.tags)
-              : parsed.tags;
-            next = next.set("tags", tagsValue);
           }
 
           if (parsed.cover) {
