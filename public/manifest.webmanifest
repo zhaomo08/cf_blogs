@@ -1,0 +1,17 @@
+{
+  "name": "My Blog",
+  "short_name": "Blog",
+  "description": "我的图文博客",
+  "start_url": "/",
+  "display": "minimal-ui",
+  "theme_color": "#0066cc",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
