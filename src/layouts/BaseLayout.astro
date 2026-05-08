@@ -1,30 +1,29 @@
 ---
 import '../styles/global.css';
-import type { Lang } from '../i18n/index';
 
 interface Props {
   title: string;
   description: string;
   image?: string;
-  lang?: Lang;
+  schema?: Record<string, unknown>;
 }
 
-const {
-  title,
-  description,
-  image,
-  lang = 'zh',
-} = Astro.props;
+const { title, description, image, schema } = Astro.props;
 
 const canonicalURL = Astro.url.href;
 const siteName = 'My Blog';
 ---
 <!DOCTYPE html>
-<html lang={lang}>
+<html lang="zh">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://cf-blogs-r2.zhaomo0823.workers.dev" crossorigin />
+    <link rel="dns-prefetch" href="https://cf-blogs-r2.zhaomo0823.workers.dev" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#0066cc" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#5ba3ff" media="(prefers-color-scheme: dark)" />
     <title>{title} | {siteName}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalURL} />
@@ -33,11 +32,13 @@ const siteName = 'My Blog';
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:site_name" content={siteName} />
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="zh_CN" />
     {image && <meta property="og:image" content={image} />}
     <meta name="twitter:card" content={image ? 'summary_large_image' : 'summary'} />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     {image && <meta name="twitter:image" content={image} />}
+    {schema && <script type="application/ld+json" set:html={JSON.stringify(schema)} />}
     <slot name="head" />
     <script is:inline>
       const saved = localStorage.getItem('theme');
