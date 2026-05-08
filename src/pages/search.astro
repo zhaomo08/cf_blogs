@@ -19,7 +19,7 @@ const sorted = [...posts].sort((a, b) => {
 });
 
 const postSummaries: PostSummary[] = sorted.map((post) => {
-  const locale = post.id.startsWith('en/') ? 'en-US' : 'zh-CN';
+  const locale = 'zh-CN';
   const dateLabel = post.data.date
     ? post.data.date.toLocaleDateString(locale, {
         year: 'numeric',
@@ -61,22 +61,22 @@ const tagGroups = tagCloud.map((item) => ({
   posts: postSummaries.filter((post) => post.tags.includes(item.tag)),
 }));
 ---
-<BaseLayout title="搜索 / Search" description="搜索博客文章">
+<BaseLayout title="搜索" description="搜索博客文章">
   <Fragment slot="head">
     <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
   </Fragment>
   <main class="container">
-    <h1>搜索 / Search</h1>
+    <h1>搜索</h1>
     <div id="search"></div>
 
     <section class="tag-browser">
       <div class="tag-browser-head">
-        <h2>标签 / Tags</h2>
+        <h2>标签</h2>
         <button id="clear-tag" class="clear-tag" hidden>清除筛选</button>
       </div>
       <div class="tag-cloud" id="tag-cloud">
         {tagCloud.length === 0 ? (
-          <p class="empty">暂无标签 / No tags</p>
+          <p class="empty">暂无标签</p>
         ) : (
           tagCloud.map((item) => (
             <button
@@ -98,7 +98,7 @@ const tagGroups = tagCloud.map((item) => ({
       {tagGroups.map((group) => (
         <div class="tag-group" data-tag-group={group.tag} hidden>
           {group.posts.length === 0 ? (
-            <p class="empty">该标签下暂无文章 / No posts under this tag</p>
+            <p class="empty">该标签下暂无文章</p>
           ) : (
             <ul>
               {group.posts.map((post) => (

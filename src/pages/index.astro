@@ -11,16 +11,24 @@ const sorted = [...posts].sort((a, b) => {
   const bTs = b.data.date ? b.data.date.valueOf() : 0;
   return bTs - aTs;
 });
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  name: '我的博客',
+  description: '我的图文博客',
+  url: Astro.url.href,
+};
 ---
-<BaseLayout title="首页" description="我的图文博客" lang="zh">
-  <Header lang="zh" />
+<BaseLayout title="首页" description="我的图文博客" {schema}>
+  <Header />
   <main class="container">
     {sorted.length === 0
       ? <p class="empty">暂无文章</p>
-      : <div class="grid">{sorted.map(post => <PostCard {post} />)}</div>
+      : <div class="grid">{sorted.map((post, idx) => <PostCard post={post} priority={idx < 2} />)}</div>
     }
   </main>
-  <Footer lang="zh" />
+  <Footer />
 </BaseLayout>
 
 <style>
