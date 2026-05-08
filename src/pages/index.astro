@@ -12,6 +12,8 @@ const sorted = [...posts].sort((a, b) => {
   return bTs - aTs;
 });
 
+const allTags = [...new Set(sorted.flatMap((p) => p.data.tags ?? []))].sort();
+
 const schema = {
   '@context': 'https://schema.org',
   '@type': 'Blog',
@@ -23,23 +25,125 @@ const schema = {
 <BaseLayout title="首页" description="我的图文博客" {schema}>
   <Header />
   <main class="container">
-    {sorted.length === 0
-      ? <p class="empty">暂无文章</p>
-      : <div class="grid">{sorted.map((post, idx) => <PostCard post={post} priority={idx < 2} />)}</div>
-    }
+    {sorted.length === 0 ? (
+      <div class="empty-state">
+        <div class="empty-icon" aria-hidden="true">📷</div>
+        <h2>暂无文章</h2>
+        <p>稍候或前往后台发布第一篇文章。</p>
+      </div>
+    ) : (
+      <>
+        {allTags.length > 0 && (
+          <nav class="tag-filter" aria-label="标签筛选">
+            <button type="button" class="chip chip-all active" data-tag="">全部</button>
+            {allTags.map((tag) => (
+              <button type="button" class="chip" data-tag={tag}>#{tag}</button>
+            ))}
+          </nav>
+        )}
+        <div class="grid" id="post-grid">
+          {sorted.map((post, idx) => <PostCard post={post} priority={idx < 2} />)}
+        </div>
+        <div class="empty-filtered" hidden>
+          <p>该标签下暂无文章。</p>
+          <button type="button" class="link-btn" id="clear-filter">清除筛选</button>
+        </div>
+      </>
+    )}
   </main>
   <Footer />
 </BaseLayout>
 
+<script is:inline>
+  (function () {
+    var chips = Array.from(document.querySelectorAll('.tag-filter .chip'));
+    var cards = Array.from(document.querySelectorAll('.post-card'));
+    var emptyFiltered = document.querySelector('.empty-filtered');
+    var clearBtn = document.getElementById('clear-filter');
+    if (!chips.length) return;
+
+    function applyTag(tag) {
+      var visibleCount = 0;
+      cards.forEach(function (card) {
+        var tagsAttr = card.getAttribute('data-tags') || '';
+        var tags = tagsAttr.split(',').filter(Boolean);
+        var visible = !tag || tags.indexOf(tag) >= 0;
+        card.hidden = !visible;
+        if (visible) visibleCount += 1;
+      });
+      chips.forEach(function (c) { c.classList.toggle('active', (c.getAttribute('data-tag') || '') === tag); });
+      if (emptyFiltered) emptyFiltered.hidden = visibleCount > 0 || !tag;
+
+      var url = new URL(window.location.href);
+      if (tag) url.searchParams.set('tag', tag);
+      else url.searchParams.delete('tag');
+      window.history.replaceState({}, '', url);
+    }
+
+    chips.forEach(function (c) {
+      c.addEventListener('click', function () { applyTag(c.getAttribute('data-tag') || ''); });
+    });
+    if (clearBtn) clearBtn.addEventListener('click', function () { applyTag(''); });
+
+    var initial = new URLSearchParams(window.location.search).get('tag') || '';
+    if (initial && chips.some(function (c) { return c.getAttribute('data-tag') === initial; })) {
+      applyTag(initial);
+    }
+  })();
+</script>
+
 <style>
   .container { max-width: var(--max-width); margin: 0 auto; padding: 2rem 1rem; }
   .grid { display: grid; gap: 1.5rem; }
-  .empty { color: var(--color-text-muted); text-align: center; padding: 4rem 0; }
+  @media (min-width: 600px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
 
-  @media (min-width: 600px) {
-    .grid { grid-template-columns: repeat(2, 1fr); }
+  .tag-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 0 0 1.6rem;
   }
-  @media (min-width: 1024px) {
-    .grid { grid-template-columns: repeat(3, 1fr); }
+  .chip {
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text-muted);
+    border-radius: 999px;
+    padding: 0.32rem 0.85rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
   }
+  .chip:hover { border-color: var(--color-accent); color: var(--color-accent); }
+  .chip.active {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--color-text-muted);
+  }
+  .empty-icon { font-size: 3rem; margin-bottom: 0.6rem; }
+  .empty-state h2 { font-size: 1.2rem; margin-bottom: 0.4rem; color: var(--color-text); }
+  .empty-state p { font-size: 0.9rem; }
+
+  .empty-filtered {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--color-text-muted);
+  }
+  .link-btn {
+    margin-top: 0.6rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text-muted);
+    border-radius: 999px;
+    padding: 0.32rem 0.9rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .link-btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
 </style>
