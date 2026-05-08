@@ -1,16 +1,9 @@
 ---
-import { t } from '../i18n/translations';
-import type { Lang } from '../i18n/index';
-
-interface Props {
-  lang: Lang;
-}
-const { lang } = Astro.props;
 const year = new Date().getFullYear();
 ---
 <footer>
   <div class="footer-inner">
-    <p>© {year} {t(lang, 'footer.rights')}</p>
+    <p>© {year} 版权所有</p>
     <div class="footer-links">
       <a href="/rss.xml">RSS</a>
       <a href="/sitemap-index.xml">Sitemap</a>
@@ -37,18 +30,8 @@ const year = new Date().getFullYear();
   .footer-links a { color: var(--color-text-muted); }
   .footer-links a:hover { color: var(--color-accent); }
   @media (max-width: 720px) {
-    footer {
-      margin-top: 2.2rem;
-      padding: 1.1rem 0.9rem;
-    }
-    .footer-inner {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.55rem;
-    }
-    .footer-links {
-      gap: 0.85rem;
-      flex-wrap: wrap;
-    }
+    footer { margin-top: 2.2rem; padding: 1.1rem 0.9rem; }
+    .footer-inner { flex-direction: column; align-items: flex-start; gap: 0.55rem; }
+    .footer-links { gap: 0.85rem; flex-wrap: wrap; }
   }
 </style>
