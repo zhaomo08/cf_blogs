@@ -2,27 +2,22 @@
 import BaseLayout from './BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { t } from '../i18n/translations';
-import type { Lang } from '../i18n/index';
 import type { CollectionEntry } from 'astro:content';
 import { buildOptimizedImageUrl, buildOptimizedSrcSet } from '../utils/image';
 
 interface Props {
   post: CollectionEntry<'blog'>;
-  lang: Lang;
   prevPost?: CollectionEntry<'blog'> | null;
   nextPost?: CollectionEntry<'blog'> | null;
 }
 
-const { post, lang, prevPost, nextPost } = Astro.props;
+const { post, prevPost, nextPost } = Astro.props;
 const { title, description, date, cover, tags, location } = post.data;
 const coverSrc = cover ? buildOptimizedImageUrl(cover, { width: 1280, fit: 'max' }) : '';
 const coverSrcSet = cover ? buildOptimizedSrcSet(cover, [640, 960, 1280, 1600], 78) : '';
 
 const dateStr = date
-  ? date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', {
-      year: 'numeric', month: 'long', day: 'numeric',
-    })
+  ? date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })
   : '';
 
 const prevHref = prevPost
@@ -31,16 +26,27 @@ const prevHref = prevPost
 const nextHref = nextPost
   ? `/blog/${nextPost.id.split('/').map((segment) => encodeURIComponent(segment)).join('/')}`
   : null;
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description: description ?? '',
+  datePublished: date ? date.toISOString() : undefined,
+  image: cover || undefined,
+  author: { '@type': 'Person', name: 'Blog Author' },
+  mainEntityOfPage: Astro.url.href,
+};
 ---
-<BaseLayout {title} {description} image={cover} {lang}>
+<BaseLayout {title} description={description ?? ''} image={cover} {schema}>
   {location && <link slot="head" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />}
-  <Header {lang} />
+  <Header />
   <main class="container">
     <article>
       <header class="post-header">
         {date && <time class="post-date" datetime={date.toISOString()}>{dateStr}</time>}
         <h1>{title}</h1>
-        <p class="post-desc">{description}</p>
+        {description && <p class="post-desc">{description}</p>}
         {tags.length > 0 && (
           <div class="tags">
             {tags.map(tag => <span class="tag">{tag}</span>)}
@@ -73,26 +79,27 @@ const nextHref = nextPost
             data-lat={String(location.lat)}
             data-lng={String(location.lng)}
             data-name={location.name}
-            aria-label={`${t(lang, 'post.location')}: ${location.name}`}
+            role="img"
+            aria-label={`拍摄地: ${location.name}`}
           ></div>
         </section>
       )}
     </article>
 
-    <nav class="post-nav">
+    <nav class="post-nav" aria-label="文章导航">
       {prevHref && prevPost && (
         <a href={prevHref} class="nav-prev">
-          ← {t(lang, 'post.prev')}：{prevPost.data.title}
+          ← 上一篇：{prevPost.data.title}
         </a>
       )}
       {nextHref && nextPost && (
         <a href={nextHref} class="nav-next">
-          {t(lang, 'post.next')}：{nextPost.data.title} →
+          下一篇：{nextPost.data.title} →
         </a>
       )}
     </nav>
   </main>
-  <Footer {lang} />
+  <Footer />
 </BaseLayout>
 
 <script is:inline>

@@ -1,26 +1,23 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import type { Lang } from '../i18n/index';
 import { buildOptimizedImageUrl, buildOptimizedSrcSet } from '../utils/image';
 
 interface Props {
   post: CollectionEntry<'blog'>;
-  lang?: Lang;
+  priority?: boolean;
 }
-const { post, lang = 'zh' } = Astro.props;
+const { post, priority = false } = Astro.props;
 const { title, description, date, cover, tags } = post.data;
 
-const guessedLang: Lang = post.id.startsWith('en/') ? 'en' : post.id.startsWith('zh/') ? 'zh' : lang;
 const href = `/blog/${post.id.split('/').map((segment) => encodeURIComponent(segment)).join('/')}`;
 const coverSrc = cover ? buildOptimizedImageUrl(cover, { width: 720, fit: 'crop' }) : '';
 const coverSrcSet = cover ? buildOptimizedSrcSet(cover, [360, 540, 720, 960], 75) : '';
 const dateStr = date
-  ? date.toLocaleDateString(guessedLang === 'en' ? 'en-US' : 'zh-CN', {
-      year: 'numeric', month: 'long', day: 'numeric',
-    })
+  ? date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })
   : '';
+const tagsAttr = tags.join(',');
 ---
-<article class="post-card">
+<article class="post-card" data-tags={tagsAttr}>
   {cover && (
     <a href={href} class="card-image-link">
       <img
@@ -28,7 +25,8 @@ const dateStr = date
         srcset={coverSrcSet || undefined}
         sizes="(max-width: 600px) 100vw, (max-width: 1024px) 50vw, 360px"
         alt={title}
-        loading="lazy"
+        loading={priority ? 'eager' : 'lazy'}
+        fetchpriority={priority ? 'high' : 'auto'}
         decoding="async"
       />
     </a>
@@ -36,7 +34,7 @@ const dateStr = date
   <div class="card-body">
     {date && <time class="post-date" datetime={date.toISOString()}>{dateStr}</time>}
     <h2><a href={href}>{title}</a></h2>
-    <p class="post-desc">{description}</p>
+    {description && <p class="post-desc">{description}</p>}
     {tags.length > 0 && (
       <div class="tags">
         {tags.map(tag => <span class="tag">{tag}</span>)}
