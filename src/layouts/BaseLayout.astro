@@ -38,7 +38,7 @@ const siteName = 'My Blog';
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     {image && <meta name="twitter:image" content={image} />}
-    {schema && <script type="application/ld+json" set:html={JSON.stringify(schema)} />}
+    {schema && <script type="application/ld+json" set:html={JSON.stringify(schema).replace(/<\//g, '<\\/')} />}
     <slot name="head" />
     <script is:inline>
       const saved = localStorage.getItem('theme');
