@@ -1,0 +1,2 @@
+# 旧 i18n URL 兼容（彻底移除 zh 子目录后）
+/blog/zh/* /blog/:splat 301
