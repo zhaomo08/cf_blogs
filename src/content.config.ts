@@ -27,6 +27,18 @@ const dateSchema = z
   }, z.coerce.date())
   .optional();
 
+function normalizeTagValue(value: unknown): string[] {
+  const source = Array.isArray(value) ? value : [value];
+  const tags = source.flatMap((item) =>
+    String(item ?? '')
+      .replace(/\]\[/g, '、')
+      .split(/[、,，;；]+/)
+      .map((tag) => tag.trim().replace(/^#+/, '').trim())
+      .filter(Boolean)
+  );
+  return [...new Set(tags)];
+}
+
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/blog' }),
   schema: z.object({
@@ -34,7 +46,7 @@ const blog = defineCollection({
     description: z.string().optional(),
     date: dateSchema,
     cover: z.string().url().optional(),
-    tags: z.array(z.string()).default([]),
+    tags: z.preprocess(normalizeTagValue, z.array(z.string())).default([]),
     draft: z.boolean().default(false),
     location: z.object({
       name: z.string(),

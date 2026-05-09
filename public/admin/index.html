@@ -439,6 +439,27 @@
         return new Date(timestamp).toISOString();
       }
 
+      function normalizeTagsValue(raw) {
+        let value = raw;
+        if (value && typeof value === "object" && typeof value.toJS === "function") {
+          value = value.toJS();
+        }
+
+        const source = Array.isArray(value) ? value : [value];
+        const tags = [];
+        source.forEach((item) => {
+          String(item || "")
+            .replace(/\]\[/g, "、")
+            .split(/[、,，;；]+/)
+            .map((tag) => tag.trim().replace(/^#+/, "").trim())
+            .filter(Boolean)
+            .forEach((tag) => {
+              if (!tags.includes(tag)) tags.push(tag);
+            });
+        });
+        return tags;
+      }
+
       function simplifyChrome() {
         const navLinks = Array.from(document.querySelectorAll("a, button, span"));
         navLinks.forEach((el) => {
@@ -530,6 +551,11 @@
 
           let next = data.set("body", parsed.body);
           next = next.set("date", normalizeDateValue(data.get("date")));
+          const normalizedTags = normalizeTagsValue(data.get("tags"));
+          const nextTags = window.Immutable && window.Immutable.fromJS
+            ? window.Immutable.fromJS(normalizedTags)
+            : normalizedTags;
+          next = next.set("tags", nextTags);
 
           const existingDescription = String(data.get("description") || "").trim();
           if (!existingDescription) {

@@ -15,7 +15,7 @@ const coverSrcSet = cover ? buildOptimizedSrcSet(cover, [360, 540, 720, 960], 75
 const dateStr = date
   ? date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })
   : '';
-const tagsAttr = tags.join(',');
+const tagsAttr = JSON.stringify(tags);
 ---
 <article class="post-card" data-tags={tagsAttr}>
   {cover && (

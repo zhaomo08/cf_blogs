@@ -53,6 +53,28 @@ function parseLocation(frontmatter) {
   return { name, lat, lng };
 }
 
+function parseTags(frontmatter) {
+  const inline = getSingleLineField(frontmatter, 'tags');
+  if (inline) {
+    if (inline === '[]') return [];
+    if (!inline.startsWith('[')) return null;
+    return inline
+      .replace(/^\[/, '')
+      .replace(/]$/, '')
+      .split(',')
+      .map((tag) => stripQuotes(tag.trim()))
+      .filter(Boolean);
+  }
+
+  const blockMatch = frontmatter.match(/^tags:\s*\r?\n((?:[ \t]+-[^\n]*(?:\r?\n|$))*)/m);
+  if (!blockMatch) return [];
+  return blockMatch[1]
+    .split(/\r?\n/)
+    .map((line) => line.match(/^[ \t]+-\s*(.+)\s*$/)?.[1])
+    .filter(Boolean)
+    .map(stripQuotes);
+}
+
 function validateFile(filePath, slugSet) {
   const errors = [];
   const raw = fs.readFileSync(filePath, 'utf8');
@@ -90,6 +112,14 @@ function validateFile(filePath, slugSet) {
   const tagsInline = getSingleLineField(frontmatter, 'tags');
   if (tagsInline && tagsInline !== '[]' && !tagsInline.startsWith('[')) {
     errors.push(`${relative}: tags should be array style, e.g. ["a","b"] or list block`);
+  }
+  const tags = parseTags(frontmatter);
+  if (tags) {
+    for (const tag of tags) {
+      if (/[、,，;；]|\]\[/.test(tag)) {
+        errors.push(`${relative}: tag "${tag}" should be split into separate tags`);
+      }
+    }
   }
 
   const coverRaw = getSingleLineField(frontmatter, 'cover');

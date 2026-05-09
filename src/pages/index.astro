@@ -62,11 +62,19 @@ const schema = {
     var clearBtn = document.getElementById('clear-filter');
     if (!chips.length) return;
 
+    function parseCardTags(card) {
+      try {
+        var parsed = JSON.parse(card.getAttribute('data-tags') || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
     function applyTag(tag) {
       var visibleCount = 0;
       cards.forEach(function (card) {
-        var tagsAttr = card.getAttribute('data-tags') || '';
-        var tags = tagsAttr.split(',').filter(Boolean);
+        var tags = parseCardTags(card);
         var visible = !tag || tags.indexOf(tag) >= 0;
         card.hidden = !visible;
         if (visible) visibleCount += 1;
