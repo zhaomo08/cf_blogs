@@ -156,29 +156,31 @@
       grid-column: 1;
       padding: 12px !important;
     }
+    body.cf-blog-entry [data-cf-field="description"] {
+      grid-column: 1;
+      grid-row: 2;
+      padding: 12px !important;
+    }
     body.cf-blog-entry [data-cf-field="body"] {
       grid-column: 1;
+      grid-row: 3;
       min-height: 62vh;
       padding: 12px !important;
     }
-    body.cf-blog-entry [data-cf-field="description"],
     body.cf-blog-entry [data-cf-field="tags"],
     body.cf-blog-entry [data-cf-field="cover"],
     body.cf-blog-entry [data-cf-field="draft"] {
       grid-column: 2;
       padding: 12px !important;
     }
-    body.cf-blog-entry [data-cf-field="description"] {
+    body.cf-blog-entry [data-cf-field="cover"] {
       grid-row: 1;
     }
     body.cf-blog-entry [data-cf-field="tags"] {
       grid-row: 2;
     }
-    body.cf-blog-entry [data-cf-field="cover"] {
-      grid-row: 3;
-    }
     body.cf-blog-entry [data-cf-field="draft"] {
-      grid-row: 4;
+      grid-row: 3;
     }
     body.cf-blog-entry [data-cf-field="date"] {
       display: none !important;
@@ -871,7 +873,7 @@
           if (bodyField && commonShell && !commonShell.querySelector(".cf-editor-tip")) {
             const tip = document.createElement("div");
             tip.className = "cf-editor-tip";
-            tip.textContent = "写作区保持纯 Markdown：图片用 ![描述](URL)，标签、摘要和封面在右侧填写；发布时间会在保存/发布时自动使用当前时间。";
+            tip.textContent = "写作区保持纯 Markdown：图片用 ![描述](URL)；摘要在标题下方填写，封面和标签在右侧填写；发布时间会在保存/发布时自动使用当前时间。";
             commonShell.insertBefore(tip, bodyField.nextSibling);
           }
         }
