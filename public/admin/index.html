@@ -44,42 +44,38 @@
         min-width: 36px;
       }
     }
-    .emlog-editor-shell {
-      display: block;
+    body {
+      background: radial-gradient(circle at 20% 0%, #f8fafc 0%, #f3f4f6 45%, #eef2f7 100%);
     }
-    .emlog-main-column,
-    .emlog-side-column {
-      min-width: 0;
+    #nc-root {
+      max-width: 1480px;
+      margin: 0 auto;
     }
-    .emlog-side-column .emlog-side-card {
+    #nc-root [class*="EditorControlPane"] {
+      padding-bottom: 110px;
+    }
+    #nc-root [class*="EditorControlPane"] [class*="ControlPaneContainer"] {
+      border-radius: 14px;
       border: 1px solid #e5e7eb;
-      border-radius: 10px;
-      background: #fafafa;
-      padding: 12px;
+      background: #ffffff;
+      box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+      padding: 14px;
     }
-    .emlog-side-column .emlog-side-card > [data-emlog-field] + [data-emlog-field] {
-      margin-top: 12px;
+    #nc-root input[type="text"],
+    #nc-root textarea,
+    #nc-root input[type="datetime-local"],
+    #nc-root input[type="url"] {
+      border-radius: 10px !important;
     }
-    [data-emlog-field="body"] textarea,
-    [data-emlog-field="body"] [contenteditable="true"],
-    [data-emlog-field="body"] [role="textbox"] {
-      min-height: 52vh !important;
+    #nc-root [role="textbox"] {
+      min-height: min(62vh, 760px);
     }
-    @media (min-width: 1180px) {
-      .emlog-editor-shell {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 350px;
-        gap: 16px;
-        align-items: start;
+    @media (max-width: 960px) {
+      #nc-root [class*="EditorControlPane"] {
+        padding-bottom: 92px;
       }
-      .emlog-side-column {
-        position: sticky;
-        top: 74px;
-      }
-      [data-emlog-field="body"] textarea,
-      [data-emlog-field="body"] [contenteditable="true"],
-      [data-emlog-field="body"] [role="textbox"] {
-        min-height: 60vh !important;
+      #nc-root [role="textbox"] {
+        min-height: min(52vh, 620px);
       }
     }
   </style>
@@ -104,20 +100,6 @@
       const CMS_AUTH_STORAGE_KEYS = ["netlify-cms-user", "decap-cms-user"];
       let currentAutoLocation = null;
       let baseViewportHeight = 0;
-      const ENTRY_LAYOUT_FLAG = "data-emlog-layout-ready";
-      const SIDEBAR_FIELD_RULES = [
-        { name: "description", pattern: /简要描述|摘要|description/i },
-        { name: "tags", pattern: /^标签|tags?/i },
-        { name: "cover", pattern: /封面|cover/i },
-        { name: "date", pattern: /发布时间|publish date|date/i },
-        { name: "allow_comment", pattern: /允许评论|comment/i },
-        { name: "home_top", pattern: /首页置顶/i },
-        { name: "category_top", pattern: /分类置顶/i },
-        { name: "alias", pattern: /链接别名|别名|alias/i },
-        { name: "redirect_url", pattern: /跳转链接|redirect/i },
-        { name: "password", pattern: /访问密码|password/i },
-        { name: "draft", pattern: /^草稿|draft/i },
-      ];
 
       function isVisible(node) {
         if (!node) return false;
@@ -512,110 +494,6 @@
         return tags;
       }
 
-      function isEntryPage() {
-        const hash = window.location.hash || "";
-        return /#\/collections\/blog\/(new|entries\/)/.test(hash);
-      }
-
-      function normalizeText(text) {
-        return String(text || "").replace(/\s+/g, " ").trim();
-      }
-
-      function findCommonAncestor(nodeA, nodeB) {
-        if (!nodeA || !nodeB) return null;
-        const parents = new Set();
-        let current = nodeA;
-        while (current) {
-          parents.add(current);
-          current = current.parentElement;
-        }
-        current = nodeB;
-        while (current) {
-          if (parents.has(current)) return current;
-          current = current.parentElement;
-        }
-        return null;
-      }
-
-      function findFieldContainerFromLabel(labelNode) {
-        let node = labelNode;
-        let candidate = null;
-        let depth = 0;
-        while (node && node !== document.body && depth < 14) {
-          const hasControl = node.querySelector(
-            "input, textarea, select, [contenteditable='true'], [role='textbox'], .CodeMirror"
-          );
-          if (hasControl) {
-            const labelCount = node.querySelectorAll("label").length;
-            if (!candidate) candidate = node;
-            if (labelCount <= 2) candidate = node;
-            if (labelCount === 1) return node;
-          }
-          node = node.parentElement;
-          depth += 1;
-        }
-        return candidate;
-      }
-
-      function findFieldByPattern(pattern) {
-        const labels = Array.from(document.querySelectorAll("label, [class*='Label'], [class*='label']"));
-        for (const label of labels) {
-          const text = normalizeText(label.textContent);
-          if (!text || !pattern.test(text)) continue;
-          const container = findFieldContainerFromLabel(label);
-          if (container) return container;
-        }
-        return null;
-      }
-
-      function buildEmlogEditorLayout() {
-        if (!isEntryPage()) return;
-
-        const bodyField = findFieldByPattern(/正文|markdown|body/i);
-        const titleField = findFieldByPattern(/^标题|title/i);
-        if (!bodyField || !titleField) return;
-
-        const baseRoot = findCommonAncestor(titleField, bodyField);
-        if (!baseRoot || baseRoot.getAttribute(ENTRY_LAYOUT_FLAG) === "1") return;
-
-        const shell = document.createElement("div");
-        shell.className = "emlog-editor-shell";
-
-        const mainColumn = document.createElement("div");
-        mainColumn.className = "emlog-main-column";
-
-        const sideColumn = document.createElement("aside");
-        sideColumn.className = "emlog-side-column";
-
-        const sideCard = document.createElement("div");
-        sideCard.className = "emlog-side-card";
-
-        const sidebarFields = [];
-        for (const rule of SIDEBAR_FIELD_RULES) {
-          const field = findFieldByPattern(rule.pattern);
-          if (field && field !== titleField && field !== bodyField && !sidebarFields.includes(field)) {
-            field.setAttribute("data-emlog-field", rule.name);
-            sidebarFields.push(field);
-          }
-        }
-
-        if (!sidebarFields.length) return;
-
-        titleField.setAttribute("data-emlog-field", "title");
-        bodyField.setAttribute("data-emlog-field", "body");
-
-        baseRoot.insertBefore(shell, titleField);
-        shell.appendChild(mainColumn);
-        shell.appendChild(sideColumn);
-        mainColumn.appendChild(titleField);
-        mainColumn.appendChild(bodyField);
-
-        sideColumn.appendChild(sideCard);
-        sidebarFields.forEach((field) => sideCard.appendChild(field));
-
-        baseRoot.setAttribute(ENTRY_LAYOUT_FLAG, "1");
-      }
-
       function simplifyChrome() {
         const navLinks = Array.from(document.querySelectorAll("a, button, span"));
         navLinks.forEach((el) => {
@@ -748,12 +626,8 @@
       setupAutoLocation();
       setupMobileToolVisibility();
       setupMobileEditorMode();
-      buildEmlogEditorLayout();
       document.getElementById("btn-r2-upload").addEventListener("click", handleR2Upload);
-      setInterval(() => {
-        simplifyChrome();
-        buildEmlogEditorLayout();
-      }, 800);
+      setInterval(simplifyChrome, 800);
     })();
   </script>
 </body>

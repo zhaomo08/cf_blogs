@@ -34,6 +34,7 @@ collections:
         hint: |
           地点会在保存时自动读取当前位置并写入地图数据（无需手动填写）。
           直接粘贴图片 URL 可显示；本地图片用右下角“上传图片到 R2”按钮。
+          若未填写 cover，会自动使用正文第一张图片；若未填写简要描述，会自动取正文第一段。
       - { label: "简要描述", name: "description", widget: "text", required: false, default: "", hint: "可选。用于首页摘要与 SEO 描述。" }
       - label: "标签"
         name: "tags"
@@ -45,10 +46,10 @@ collections:
         collapsed: false
       - { label: "封面图片 URL", name: "cover", widget: "string", required: false, default: "", hint: "可选。填写后将作为文章顶部封面；留空则自动取正文第一张图片。" }
       - { label: "发布时间", name: "date", widget: "datetime", required: false, default: "", format: "YYYY-MM-DD HH:mm:ss", date_format: "YYYY-MM-DD", time_format: "HH:mm:ss" }
-      - { label: "允许评论", name: "allow_comment", widget: "boolean", default: true, required: false }
-      - { label: "首页置顶", name: "home_top", widget: "boolean", default: false, required: false }
-      - { label: "分类置顶", name: "category_top", widget: "boolean", default: false, required: false }
-      - { label: "链接别名", name: "alias", widget: "string", required: false, default: "", hint: "可选。用于更短的文章链接标识。" }
-      - { label: "跳转链接", name: "redirect_url", widget: "string", required: false, default: "", hint: "可选。填写后可用于跳转到外部链接。" }
-      - { label: "访问密码", name: "password", widget: "string", required: false, default: "", hint: "可选。仅保存到 frontmatter，前台可后续扩展鉴权逻辑。" }
+      - { label: "允许评论", name: "allow_comment", widget: "hidden", default: true }
+      - { label: "首页置顶", name: "home_top", widget: "hidden", default: false }
+      - { label: "分类置顶", name: "category_top", widget: "hidden", default: false }
+      - { label: "链接别名", name: "alias", widget: "hidden", default: "" }
+      - { label: "跳转链接", name: "redirect_url", widget: "hidden", default: "" }
+      - { label: "访问密码", name: "password", widget: "hidden", default: "" }
       - { label: "草稿", name: "draft", widget: "boolean", default: false, required: false }
