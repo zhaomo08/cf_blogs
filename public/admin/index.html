@@ -45,11 +45,109 @@
       }
     }
     body {
-      background: radial-gradient(circle at 20% 0%, #f8fafc 0%, #f3f4f6 45%, #eef2f7 100%);
+      background:
+        radial-gradient(circle at 12% 0%, rgba(180, 83, 9, 0.12), transparent 34rem),
+        linear-gradient(180deg, #fbfaf7 0%, #f4efe7 100%);
+      color: #1f2933;
     }
     #nc-root {
-      max-width: 1480px;
+      max-width: 1640px;
       margin: 0 auto;
+    }
+    body.cf-blog-entry #nc-root {
+      padding: 18px 20px 120px;
+    }
+    body.cf-blog-entry [data-cf-editor-shell="true"] {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 18px;
+      align-items: start;
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+    body.cf-blog-entry [data-cf-field] {
+      min-width: 0;
+      border-radius: 12px !important;
+      border: 1px solid #e6dfd4 !important;
+      background: rgba(255, 255, 255, 0.92) !important;
+      box-shadow: 0 12px 34px rgba(50, 39, 23, 0.06) !important;
+    }
+    body.cf-blog-entry [data-cf-field="title"] {
+      grid-column: 1 / -1;
+      padding: 14px !important;
+    }
+    body.cf-blog-entry [data-cf-field="body"] {
+      grid-column: 1;
+      min-height: 68vh;
+      padding: 14px !important;
+    }
+    body.cf-blog-entry [data-cf-field="description"],
+    body.cf-blog-entry [data-cf-field="tags"],
+    body.cf-blog-entry [data-cf-field="cover"],
+    body.cf-blog-entry [data-cf-field="date"],
+    body.cf-blog-entry [data-cf-field="draft"] {
+      grid-column: 2;
+      padding: 14px !important;
+    }
+    body.cf-blog-entry [data-cf-field="description"] {
+      grid-row: 2;
+    }
+    body.cf-blog-entry [data-cf-field="tags"] {
+      grid-row: 3;
+    }
+    body.cf-blog-entry [data-cf-field="cover"] {
+      grid-row: 4;
+    }
+    body.cf-blog-entry [data-cf-field="date"] {
+      grid-row: 5;
+    }
+    body.cf-blog-entry [data-cf-field="draft"] {
+      grid-row: 6;
+    }
+    body.cf-blog-entry [data-cf-field="title"] input {
+      min-height: 54px !important;
+      font-size: 22px !important;
+      font-weight: 700 !important;
+      letter-spacing: -0.02em;
+    }
+    body.cf-blog-entry [data-cf-field="body"] textarea {
+      min-height: 66vh !important;
+      font-size: 16px !important;
+      background: #fffdf9 !important;
+    }
+    body.cf-blog-entry [data-cf-field="description"] textarea {
+      min-height: 132px !important;
+    }
+    body.cf-blog-entry [data-cf-field="cover"] input,
+    body.cf-blog-entry [data-cf-field="tags"] input {
+      min-height: 42px !important;
+    }
+    body.cf-blog-entry [data-cf-field="title"]::before,
+    body.cf-blog-entry [data-cf-field="body"]::before,
+    body.cf-blog-entry [data-cf-field="description"]::before,
+    body.cf-blog-entry [data-cf-field="tags"]::before,
+    body.cf-blog-entry [data-cf-field="cover"]::before,
+    body.cf-blog-entry [data-cf-field="date"]::before {
+      display: block;
+      margin-bottom: 8px;
+      color: #92400e;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    body.cf-blog-entry [data-cf-field="title"]::before { content: "Title"; }
+    body.cf-blog-entry [data-cf-field="body"]::before { content: "Markdown Editor"; }
+    body.cf-blog-entry [data-cf-field="description"]::before { content: "Description"; }
+    body.cf-blog-entry [data-cf-field="tags"]::before { content: "Tags"; }
+    body.cf-blog-entry [data-cf-field="cover"]::before { content: "Cover"; }
+    body.cf-blog-entry [data-cf-field="date"]::before { content: "Publish Time"; }
+    body.cf-blog-entry .cf-editor-tip {
+      grid-column: 1;
+      margin-top: -6px;
+      color: #716b61;
+      font-size: 13px;
+      line-height: 1.7;
     }
     #nc-root [class*="EditorControlPane"] {
       padding-bottom: 110px;
@@ -76,6 +174,16 @@
       line-height: 1.7 !important;
     }
     @media (max-width: 960px) {
+      body.cf-blog-entry #nc-root {
+        padding: 10px 10px 96px;
+      }
+      body.cf-blog-entry [data-cf-editor-shell="true"] {
+        display: block !important;
+      }
+      body.cf-blog-entry [data-cf-field] {
+        margin-bottom: 12px !important;
+        padding: 12px !important;
+      }
       #nc-root [class*="EditorControlPane"] {
         padding-bottom: 92px;
       }
@@ -545,6 +653,101 @@
         if (viewport) viewport.addEventListener("resize", update);
       }
 
+      function setupEditorLayoutEnhancements() {
+        const FIELD_LABELS = [
+          { key: "title", labels: ["标题"] },
+          { key: "body", labels: ["正文（Markdown）", "正文"] },
+          { key: "description", labels: ["简要描述"] },
+          { key: "tags", labels: ["标签"] },
+          { key: "cover", labels: ["封面图片 URL", "封面"] },
+          { key: "date", labels: ["发布时间"] },
+          { key: "draft", labels: ["草稿"] },
+        ];
+
+        function isEntryPage() {
+          return /#\/collections\/blog\/(new|entries\/)/.test(window.location.hash || "");
+        }
+
+        function compactText(value) {
+          return String(value || "").replace(/\s+/g, " ").trim();
+        }
+
+        function findLabelNode(labels) {
+          const nodes = Array.from(document.querySelectorAll("#nc-root label, #nc-root span, #nc-root div, #nc-root p"));
+          return nodes.find((node) => {
+            const text = compactText(node.textContent);
+            return text.length > 0 && text.length < 80 && labels.some((label) => text.includes(label));
+          });
+        }
+
+        function findFieldShell(labelNode) {
+          let node = labelNode;
+          for (let depth = 0; node && depth < 9; depth += 1) {
+            if (node.id === "nc-root") break;
+            if (node.querySelector && node.querySelector("input, textarea, [contenteditable='true'], [role='textbox']")) {
+              return node;
+            }
+            node = node.parentElement;
+          }
+          return null;
+        }
+
+        function findCommonShell(fields) {
+          const candidates = fields
+            .filter(Boolean)
+            .map((field) => {
+              const chain = [];
+              let node = field.parentElement;
+              while (node && node.id !== "nc-root") {
+                chain.push(node);
+                node = node.parentElement;
+              }
+              return chain;
+            });
+          if (!candidates.length) return null;
+
+          const titleChain = candidates[0];
+          return titleChain.find((candidate) => {
+            const count = fields.filter((field) => field && candidate.contains(field)).length;
+            return count >= Math.min(fields.length, 4);
+          }) || null;
+        }
+
+        function applyLayout() {
+          document.body.classList.toggle("cf-blog-entry", isEntryPage());
+          if (!isEntryPage()) return;
+
+          const fields = [];
+          FIELD_LABELS.forEach(({ key, labels }) => {
+            const labelNode = findLabelNode(labels);
+            const shell = labelNode ? findFieldShell(labelNode) : null;
+            if (!shell) return;
+            shell.setAttribute("data-cf-field", key);
+            fields.push(shell);
+          });
+
+          const commonShell = findCommonShell(fields);
+          if (commonShell) {
+            commonShell.setAttribute("data-cf-editor-shell", "true");
+          }
+
+          const bodyField = fields.find((field) => field.getAttribute("data-cf-field") === "body");
+          if (bodyField && commonShell && !commonShell.querySelector(".cf-editor-tip")) {
+            const tip = document.createElement("div");
+            tip.className = "cf-editor-tip";
+            tip.textContent = "写作区保持纯 Markdown：图片用 ![描述](URL)，标签、摘要、封面和发布时间在右侧填写；不填封面会自动取正文第一张图片。";
+            commonShell.insertBefore(tip, bodyField.nextSibling);
+          }
+        }
+
+        const observer = new MutationObserver(() => {
+          window.requestAnimationFrame(applyLayout);
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+        window.addEventListener("hashchange", applyLayout);
+        applyLayout();
+      }
+
       CMS.registerEventListener({
         name: "preSave",
         handler: ({ entry }) => {
@@ -594,6 +797,7 @@
 
       setupAutoLocation();
       setupMobileToolVisibility();
+      setupEditorLayoutEnhancements();
       document.getElementById("btn-r2-upload").addEventListener("click", handleR2Upload);
       setInterval(simplifyChrome, 800);
     })();
