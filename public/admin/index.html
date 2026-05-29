@@ -866,11 +866,18 @@
       }
 
       function simplifyChrome() {
-        const navLinks = Array.from(document.querySelectorAll("a, button, span"));
-        navLinks.forEach((el) => {
+        const HIDE_NAV = ["工作流", "workflow", "媒体", "media"];
+        const HIDE_PUBLISH = ["发布，然后新建内容", "发布，然后复制内容", "publish and create new", "publish and duplicate"];
+
+        const allEls = Array.from(document.querySelectorAll("a, button, span, li, div"));
+        allEls.forEach((el) => {
           const text = (el.textContent || "").trim().toLowerCase();
-          if (text === "工作流" || text === "workflow" || text === "媒体" || text === "media") {
+          if (HIDE_NAV.some((kw) => text === kw)) {
             const node = el.closest("a,button,li,div") || el;
+            node.style.display = "none";
+          }
+          if (HIDE_PUBLISH.some((kw) => text === kw.toLowerCase())) {
+            const node = el.closest("li,div,[role='option'],[class*='DropdownItem']") || el;
             node.style.display = "none";
           }
         });
