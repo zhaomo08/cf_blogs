@@ -138,6 +138,210 @@
       max-width: 1640px;
       margin: 0 auto;
     }
+
+    /* ===== Top Header Bar ===== */
+    #nc-root header,
+    #nc-root [class*="AppHeader"] {
+      background: rgba(255, 253, 249, 0.92) !important;
+      backdrop-filter: blur(14px) !important;
+      border-bottom: 1px solid #e6dfd4 !important;
+      box-shadow: 0 1px 6px rgba(50, 39, 23, 0.05) !important;
+    }
+    #nc-root [class*="AppHeader"] [class*="NavLink"],
+    #nc-root [class*="AppHeader"] a {
+      color: #4a4340 !important;
+      font-weight: 600 !important;
+      transition: color 0.15s ease !important;
+    }
+    #nc-root [class*="AppHeader"] [class*="NavLink"]:hover,
+    #nc-root [class*="AppHeader"] a:hover {
+      color: #b45309 !important;
+    }
+    #nc-root [class*="AppHeader"] [class*="NavLink"] svg,
+    #nc-root [class*="AppHeader"] a svg {
+      color: #b45309 !important;
+    }
+    /* "快速新建" dropdown */
+    #nc-root [class*="AppHeader"] button,
+    #nc-root [class*="AppHeaderButton"] {
+      background: #1f2937 !important;
+      border-radius: 9px !important;
+      border: none !important;
+      font-weight: 600 !important;
+      box-shadow: 0 2px 8px rgba(31, 41, 55, 0.16) !important;
+      transition: all 0.18s ease !important;
+    }
+    #nc-root [class*="AppHeader"] button:hover {
+      background: #374151 !important;
+      box-shadow: 0 4px 14px rgba(31, 41, 55, 0.22) !important;
+    }
+
+    /* ===== Sidebar ===== */
+    #nc-root [class*="Sidebar"],
+    #nc-root > div > div:first-child {
+      border-right: 1px solid #e6dfd4 !important;
+    }
+    #nc-root [class*="Sidebar"] h2,
+    #nc-root [class*="SidebarHeading"] {
+      color: #92400e !important;
+      font-size: 13px !important;
+      font-weight: 800 !important;
+      letter-spacing: 0.06em !important;
+      text-transform: uppercase !important;
+    }
+    #nc-root [class*="Sidebar"] input[type="text"],
+    #nc-root [class*="Sidebar"] input[type="search"] {
+      border: 1px solid #e6dfd4 !important;
+      border-radius: 10px !important;
+      background: #ffffff !important;
+      padding: 8px 12px !important;
+      font-size: 13px !important;
+      transition: border-color 0.15s ease !important;
+    }
+    #nc-root [class*="Sidebar"] input:focus {
+      border-color: #b45309 !important;
+      outline: none !important;
+      box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1) !important;
+    }
+    #nc-root [class*="Sidebar"] a,
+    #nc-root [class*="SidebarNavLink"] {
+      border-radius: 8px !important;
+      margin: 2px 6px !important;
+      padding: 8px 12px !important;
+      font-size: 14px !important;
+      color: #4a4340 !important;
+      transition: all 0.15s ease !important;
+    }
+    #nc-root [class*="Sidebar"] a:hover {
+      background: rgba(180, 83, 9, 0.06) !important;
+      color: #92400e !important;
+    }
+    #nc-root [class*="Sidebar"] a[class*="active"],
+    #nc-root [class*="Sidebar"] a[class*="selected"],
+    #nc-root [class*="Sidebar"] a[aria-current] {
+      background: rgba(180, 83, 9, 0.1) !important;
+      color: #b45309 !important;
+      font-weight: 700 !important;
+      border-left: 3px solid #b45309 !important;
+    }
+
+    /* ===== Collection Header ===== */
+    #nc-root [class*="CollectionTop"] h1,
+    #nc-root [class*="CollectionTop"] h2 {
+      font-size: 22px !important;
+      font-weight: 800 !important;
+      color: #1f2933 !important;
+      letter-spacing: -0.02em !important;
+    }
+    /* "新建博客文章" button */
+    #nc-root [class*="CollectionTop"] a[href*="new"],
+    #nc-root [class*="TopNewButton"],
+    #nc-root a[class*="NewButton"] {
+      background: linear-gradient(135deg, #b45309, #d97706) !important;
+      border: none !important;
+      border-radius: 10px !important;
+      color: #ffffff !important;
+      font-weight: 700 !important;
+      padding: 10px 20px !important;
+      box-shadow: 0 4px 16px rgba(180, 83, 9, 0.22) !important;
+      transition: all 0.2s ease !important;
+      text-decoration: none !important;
+    }
+    #nc-root [class*="CollectionTop"] a[href*="new"]:hover,
+    #nc-root [class*="TopNewButton"]:hover,
+    #nc-root a[class*="NewButton"]:hover {
+      background: linear-gradient(135deg, #92400e, #b45309) !important;
+      box-shadow: 0 6px 22px rgba(180, 83, 9, 0.3) !important;
+      transform: translateY(-1px);
+    }
+
+    /* ===== Entry List Cards ===== */
+    #nc-root [class*="ListCard"],
+    #nc-root [class*="EntryCard"],
+    #nc-root [class*="Entries"] > div > a {
+      display: block !important;
+      border: 1px solid #e6dfd4 !important;
+      border-radius: 12px !important;
+      background: rgba(255, 255, 255, 0.85) !important;
+      margin-bottom: 8px !important;
+      padding: 16px 20px !important;
+      text-decoration: none !important;
+      color: #1f2933 !important;
+      box-shadow: 0 2px 8px rgba(50, 39, 23, 0.03) !important;
+      transition: all 0.2s ease !important;
+    }
+    #nc-root [class*="ListCard"]:hover,
+    #nc-root [class*="EntryCard"]:hover,
+    #nc-root [class*="Entries"] > div > a:hover {
+      background: #ffffff !important;
+      border-color: #d4c9b8 !important;
+      box-shadow: 0 8px 28px rgba(50, 39, 23, 0.08) !important;
+      transform: translateY(-2px);
+    }
+    #nc-root [class*="ListCardTitle"],
+    #nc-root [class*="ListCard"] h2 {
+      font-size: 15px !important;
+      font-weight: 600 !important;
+      color: #1f2933 !important;
+      letter-spacing: -0.01em !important;
+      line-height: 1.5 !important;
+    }
+
+    /* ===== Sort & View Controls ===== */
+    #nc-root [class*="ViewControls"],
+    #nc-root [class*="CollectionControls"] {
+      color: #716b61 !important;
+    }
+    #nc-root [class*="ViewControls"] button,
+    #nc-root [class*="CollectionControls"] button {
+      border-radius: 6px !important;
+      color: #716b61 !important;
+      transition: color 0.15s ease, background 0.15s ease !important;
+    }
+    #nc-root [class*="ViewControls"] button:hover,
+    #nc-root [class*="CollectionControls"] button:hover {
+      color: #b45309 !important;
+      background: rgba(180, 83, 9, 0.06) !important;
+    }
+
+    /* ===== Dropdown Menus ===== */
+    #nc-root [class*="Dropdown"],
+    #nc-root ul[role="listbox"],
+    #nc-root [class*="MenuList"] {
+      border: 1px solid #e6dfd4 !important;
+      border-radius: 10px !important;
+      background: #fffdf9 !important;
+      box-shadow: 0 12px 40px rgba(50, 39, 23, 0.12) !important;
+      overflow: hidden !important;
+    }
+    #nc-root [class*="Dropdown"] li,
+    #nc-root [class*="MenuList"] li {
+      transition: background 0.12s ease !important;
+    }
+    #nc-root [class*="Dropdown"] li:hover,
+    #nc-root [class*="MenuList"] li:hover {
+      background: rgba(180, 83, 9, 0.06) !important;
+    }
+
+    /* ===== General Polish ===== */
+    #nc-root [class*="EditorToolbar"],
+    #nc-root [class*="Toolbar"] {
+      border-radius: 10px !important;
+      border: 1px solid #e6dfd4 !important;
+      background: #fffdf9 !important;
+    }
+    #nc-root a:focus-visible,
+    #nc-root button:focus-visible,
+    #nc-root input:focus-visible {
+      outline: 2px solid rgba(180, 83, 9, 0.4) !important;
+      outline-offset: 2px !important;
+    }
+    #nc-root [class*="NotFound"],
+    #nc-root [class*="EmptyMessage"] {
+      color: #92400e !important;
+      font-style: italic;
+    }
+
     body.cf-blog-entry #nc-root {
       padding: 18px 20px 120px;
     }
