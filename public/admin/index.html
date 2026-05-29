@@ -28,6 +28,86 @@
       opacity: 0.6;
       cursor: not-allowed;
     }
+    .upload-result-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(31, 41, 55, 0.38);
+      backdrop-filter: blur(4px);
+    }
+    .upload-result-backdrop.is-open {
+      display: flex;
+    }
+    .upload-result-dialog {
+      width: min(720px, 100%);
+      border: 1px solid #e6dfd4;
+      border-radius: 14px;
+      background: #fffdf9;
+      box-shadow: 0 24px 80px rgba(31, 41, 55, 0.24);
+      padding: 18px;
+    }
+    .upload-result-dialog h2 {
+      margin: 0 0 6px;
+      color: #1f2933;
+      font-size: 18px;
+      line-height: 1.35;
+    }
+    .upload-result-dialog p {
+      margin: 0 0 14px;
+      color: #716b61;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .upload-result-grid {
+      display: grid;
+      gap: 12px;
+    }
+    .upload-result-field label {
+      display: block;
+      margin-bottom: 6px;
+      color: #92400e;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .upload-result-field textarea {
+      width: 100%;
+      min-height: 74px;
+      resize: vertical;
+      border: 1px solid #ded6ca;
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: #1f2933;
+      background: #ffffff;
+      font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    .upload-result-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 14px;
+    }
+    .upload-result-actions button {
+      border: 1px solid #ded6ca;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #1f2933;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 9px 12px;
+      cursor: pointer;
+    }
+    .upload-result-actions button[data-primary="true"] {
+      border-color: #1f2937;
+      background: #1f2937;
+      color: #ffffff;
+    }
     @media (max-width: 900px) {
       .admin-tools button {
         font-size: 12px;
@@ -59,10 +139,10 @@
     }
     body.cf-blog-entry [data-cf-editor-shell="true"] {
       display: grid !important;
-      grid-template-columns: minmax(0, 1fr) 360px;
-      gap: 18px;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 14px;
       align-items: start;
-      max-width: 1500px;
+      max-width: 1360px;
       margin: 0 auto;
     }
     body.cf-blog-entry [data-cf-field] {
@@ -73,50 +153,51 @@
       box-shadow: 0 12px 34px rgba(50, 39, 23, 0.06) !important;
     }
     body.cf-blog-entry [data-cf-field="title"] {
-      grid-column: 1 / -1;
-      padding: 14px !important;
+      grid-column: 1;
+      padding: 12px !important;
     }
     body.cf-blog-entry [data-cf-field="body"] {
       grid-column: 1;
-      min-height: 68vh;
-      padding: 14px !important;
+      min-height: 62vh;
+      padding: 12px !important;
     }
     body.cf-blog-entry [data-cf-field="description"],
     body.cf-blog-entry [data-cf-field="tags"],
     body.cf-blog-entry [data-cf-field="cover"],
-    body.cf-blog-entry [data-cf-field="date"],
     body.cf-blog-entry [data-cf-field="draft"] {
       grid-column: 2;
-      padding: 14px !important;
+      padding: 12px !important;
     }
     body.cf-blog-entry [data-cf-field="description"] {
-      grid-row: 2;
+      grid-row: 1;
     }
     body.cf-blog-entry [data-cf-field="tags"] {
-      grid-row: 3;
+      grid-row: 2;
     }
     body.cf-blog-entry [data-cf-field="cover"] {
+      grid-row: 3;
+    }
+    body.cf-blog-entry [data-cf-field="draft"] {
       grid-row: 4;
     }
     body.cf-blog-entry [data-cf-field="date"] {
-      grid-row: 5;
-    }
-    body.cf-blog-entry [data-cf-field="draft"] {
-      grid-row: 6;
+      display: none !important;
     }
     body.cf-blog-entry [data-cf-field="title"] input {
-      min-height: 54px !important;
-      font-size: 22px !important;
+      min-height: 48px !important;
+      font-size: 20px !important;
       font-weight: 700 !important;
       letter-spacing: -0.02em;
     }
     body.cf-blog-entry [data-cf-field="body"] textarea {
-      min-height: 66vh !important;
+      min-height: 60vh !important;
       font-size: 16px !important;
       background: #fffdf9 !important;
     }
+    body.cf-blog-entry [data-cf-field="description"] input,
     body.cf-blog-entry [data-cf-field="description"] textarea {
-      min-height: 132px !important;
+      min-height: 42px !important;
+      height: 42px !important;
     }
     body.cf-blog-entry [data-cf-field="cover"] input,
     body.cf-blog-entry [data-cf-field="tags"] input {
@@ -126,8 +207,7 @@
     body.cf-blog-entry [data-cf-field="body"]::before,
     body.cf-blog-entry [data-cf-field="description"]::before,
     body.cf-blog-entry [data-cf-field="tags"]::before,
-    body.cf-blog-entry [data-cf-field="cover"]::before,
-    body.cf-blog-entry [data-cf-field="date"]::before {
+    body.cf-blog-entry [data-cf-field="cover"]::before {
       display: block;
       margin-bottom: 8px;
       color: #92400e;
@@ -141,7 +221,6 @@
     body.cf-blog-entry [data-cf-field="description"]::before { content: "Description"; }
     body.cf-blog-entry [data-cf-field="tags"]::before { content: "Tags"; }
     body.cf-blog-entry [data-cf-field="cover"]::before { content: "Cover"; }
-    body.cf-blog-entry [data-cf-field="date"]::before { content: "Publish Time"; }
     body.cf-blog-entry .cf-editor-tip {
       grid-column: 1;
       margin-top: -6px;
@@ -169,7 +248,7 @@
       min-height: min(62vh, 760px);
     }
     #nc-root textarea {
-      min-height: min(62vh, 760px) !important;
+      min-height: 84px !important;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace !important;
       line-height: 1.7 !important;
     }
@@ -191,7 +270,7 @@
         min-height: min(52vh, 620px);
       }
       #nc-root textarea {
-        min-height: min(52vh, 620px) !important;
+        min-height: 84px !important;
       }
     }
   </style>
@@ -204,6 +283,29 @@
 
   <div class="admin-tools">
     <button id="btn-r2-upload" type="button">上传图片到 R2</button>
+  </div>
+
+  <div class="upload-result-backdrop" id="upload-result" aria-hidden="true">
+    <div class="upload-result-dialog" role="dialog" aria-modal="true" aria-labelledby="upload-result-title">
+      <h2 id="upload-result-title">图片已上传到 R2</h2>
+      <p>封面图一般复制 URL 填到“封面图片 URL”；正文图片复制 Markdown 放到正文里。</p>
+      <div class="upload-result-grid">
+        <div class="upload-result-field">
+          <label for="upload-url">图片 URL（用于封面）</label>
+          <textarea id="upload-url" readonly></textarea>
+        </div>
+        <div class="upload-result-field">
+          <label for="upload-markdown">Markdown（用于正文）</label>
+          <textarea id="upload-markdown" readonly></textarea>
+        </div>
+      </div>
+      <div class="upload-result-actions">
+        <button type="button" data-copy-target="upload-url">复制 URL</button>
+        <button type="button" data-copy-target="upload-markdown" data-primary="true">复制 Markdown</button>
+        <button type="button" id="insert-upload-markdown">插入正文</button>
+        <button type="button" id="close-upload-result">关闭</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -355,6 +457,37 @@
         });
       }
 
+      async function copyText(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch (_) {
+          window.prompt("复制失败，请手动复制：", text);
+          return false;
+        }
+      }
+
+      function showUploadResult({ url, markdown }) {
+        const modal = document.getElementById("upload-result");
+        const urlField = document.getElementById("upload-url");
+        const markdownField = document.getElementById("upload-markdown");
+        if (!modal || !urlField || !markdownField) return;
+
+        urlField.value = url;
+        markdownField.value = markdown;
+        modal.classList.add("is-open");
+        modal.setAttribute("aria-hidden", "false");
+        markdownField.focus();
+        markdownField.select();
+      }
+
+      function closeUploadResult() {
+        const modal = document.getElementById("upload-result");
+        if (!modal) return;
+        modal.classList.remove("is-open");
+        modal.setAttribute("aria-hidden", "true");
+      }
+
       async function handleR2Upload() {
         const btn = document.getElementById("btn-r2-upload");
         try {
@@ -366,12 +499,7 @@
           if (!payload || !payload.url) throw new Error("Missing url");
 
           const markdown = `![${file.name}](${payload.url})`;
-          const inserted = insertMarkdownToEditor(markdown);
-          if (inserted) {
-            alert("上传成功，已插入 Markdown 图片。");
-          } else {
-            window.prompt("已上传成功，请手动复制下面 Markdown：", markdown);
-          }
+          showUploadResult({ url: payload.url, markdown });
         } catch (err) {
           const msg = err && err.message ? err.message : String(err);
           alert("上传失败: " + msg);
@@ -379,6 +507,42 @@
           btn.disabled = false;
           btn.textContent = "上传图片到 R2";
         }
+      }
+
+      function setupUploadResultActions() {
+        const modal = document.getElementById("upload-result");
+        if (!modal) return;
+
+        modal.addEventListener("click", (event) => {
+          if (event.target === modal) closeUploadResult();
+        });
+        document.getElementById("close-upload-result")?.addEventListener("click", closeUploadResult);
+        document.getElementById("insert-upload-markdown")?.addEventListener("click", () => {
+          const markdown = document.getElementById("upload-markdown")?.value || "";
+          if (markdown && insertMarkdownToEditor(markdown)) {
+            closeUploadResult();
+          } else if (markdown) {
+            window.prompt("未找到正文编辑器，请手动复制：", markdown);
+          }
+        });
+        Array.from(document.querySelectorAll("[data-copy-target]")).forEach((button) => {
+          button.addEventListener("click", async () => {
+            const targetId = button.getAttribute("data-copy-target");
+            const target = targetId ? document.getElementById(targetId) : null;
+            const text = target && "value" in target ? target.value : "";
+            if (!text) return;
+            const copied = await copyText(text);
+            if (!copied) return;
+            const oldText = button.textContent;
+            button.textContent = "已复制";
+            setTimeout(() => {
+              button.textContent = oldText;
+            }, 1200);
+          });
+        });
+        window.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") closeUploadResult();
+        });
       }
 
       function parseCommentMetaBlock(body) {
@@ -562,33 +726,6 @@
         }
       }
 
-      function normalizeDateValue(value) {
-        const nowIso = new Date().toISOString();
-        if (!value) return nowIso;
-
-        let raw = value;
-        if (raw && typeof raw === "object" && typeof raw.toJS === "function") {
-          raw = raw.toJS();
-        }
-
-        if (raw && typeof raw === "object") {
-          if (typeof raw.toISOString === "function") {
-            return raw.toISOString();
-          }
-          if (typeof raw.value === "string") raw = raw.value;
-          else if (typeof raw.date === "string") raw = raw.date;
-          else if (typeof raw.raw === "string") raw = raw.raw;
-          else return nowIso;
-        }
-
-        const text = String(raw).trim();
-        if (!text || text === "{{now}}") return nowIso;
-
-        const timestamp = Date.parse(text);
-        if (Number.isNaN(timestamp)) return nowIso;
-        return new Date(timestamp).toISOString();
-      }
-
       function normalizeTagsValue(raw) {
         let value = raw;
         if (value && typeof value === "object" && typeof value.toJS === "function") {
@@ -660,7 +797,6 @@
           { key: "description", labels: ["简要描述"] },
           { key: "tags", labels: ["标签"] },
           { key: "cover", labels: ["封面图片 URL", "封面"] },
-          { key: "date", labels: ["发布时间"] },
           { key: "draft", labels: ["草稿"] },
         ];
 
@@ -735,7 +871,7 @@
           if (bodyField && commonShell && !commonShell.querySelector(".cf-editor-tip")) {
             const tip = document.createElement("div");
             tip.className = "cf-editor-tip";
-            tip.textContent = "写作区保持纯 Markdown：图片用 ![描述](URL)，标签、摘要、封面和发布时间在右侧填写；不填封面会自动取正文第一张图片。";
+            tip.textContent = "写作区保持纯 Markdown：图片用 ![描述](URL)，标签、摘要和封面在右侧填写；发布时间会在保存/发布时自动使用当前时间。";
             commonShell.insertBefore(tip, bodyField.nextSibling);
           }
         }
@@ -756,7 +892,7 @@
           const parsed = parseBodyMeta(body);
 
           let next = data.set("body", parsed.body);
-          next = next.set("date", normalizeDateValue(data.get("date")));
+          next = next.set("date", new Date().toISOString());
           const normalizedTags = normalizeTagsValue(data.get("tags"));
           const nextTags = window.Immutable && window.Immutable.fromJS
             ? window.Immutable.fromJS(normalizedTags)
@@ -798,6 +934,7 @@
       setupAutoLocation();
       setupMobileToolVisibility();
       setupEditorLayoutEnhancements();
+      setupUploadResultActions();
       document.getElementById("btn-r2-upload").addEventListener("click", handleR2Upload);
       setInterval(simplifyChrome, 800);
     })();

@@ -32,7 +32,7 @@ collections:
           地点会在保存时自动读取当前位置并写入地图数据（无需手动填写）。
           直接粘贴 Markdown 图片（如 ![描述](https://...)）；本地图片用右下角“上传图片到 R2”按钮。
           若未填写 cover，会自动使用正文第一张图片；若未填写简要描述，会自动取正文第一段。
-      - { label: "简要描述", name: "description", widget: "text", required: false, default: "", hint: "可选。用于首页摘要与 SEO 描述。" }
+      - { label: "简要描述", name: "description", widget: "string", required: false, default: "", hint: "可选。用于首页摘要与 SEO 描述。" }
       - label: "标签"
         name: "tags"
         widget: "list"
@@ -42,7 +42,7 @@ collections:
         allow_add: true
         collapsed: false
       - { label: "封面图片 URL", name: "cover", widget: "string", required: false, default: "", hint: "可选。填写后将作为文章顶部封面；留空则自动取正文第一张图片。" }
-      - { label: "发布时间", name: "date", widget: "datetime", required: false, default: "", format: "YYYY-MM-DD HH:mm:ss", date_format: "YYYY-MM-DD", time_format: "HH:mm:ss" }
+      - { label: "发布时间", name: "date", widget: "hidden", default: "" }
       - { label: "允许评论", name: "allow_comment", widget: "hidden", default: true }
       - { label: "首页置顶", name: "home_top", widget: "hidden", default: false }
       - { label: "分类置顶", name: "category_top", widget: "hidden", default: false }
