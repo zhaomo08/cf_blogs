@@ -10,8 +10,8 @@
     .admin-tools {
       position: fixed;
       right: max(12px, env(safe-area-inset-right));
-      bottom: calc(12px + env(safe-area-inset-bottom));
-      z-index: 9999;
+      top: calc(72px + env(safe-area-inset-top));
+      z-index: 2147483000;
       transition: transform 0.2s ease, opacity 0.2s ease;
     }
     .admin-tools button {
@@ -109,6 +109,10 @@
       color: #ffffff;
     }
     @media (max-width: 900px) {
+      .admin-tools {
+        top: auto;
+        bottom: calc(12px + env(safe-area-inset-bottom));
+      }
       .admin-tools button {
         font-size: 12px;
         padding: 9px 10px;
@@ -781,10 +785,10 @@
           if (!baseViewportHeight) {
             baseViewportHeight = currentHeight;
           }
-          const keyboardLikelyVisible = baseViewportHeight - currentHeight > 150;
-          tools.style.opacity = keyboardLikelyVisible ? "0" : "1";
-          tools.style.pointerEvents = keyboardLikelyVisible ? "none" : "auto";
-          tools.style.transform = keyboardLikelyVisible ? "translateY(8px)" : "translateY(0)";
+          const keyboardOffset = Math.max(0, baseViewportHeight - currentHeight);
+          tools.style.opacity = "1";
+          tools.style.pointerEvents = "auto";
+          tools.style.transform = keyboardOffset > 80 ? `translateY(-${Math.min(keyboardOffset, 320)}px)` : "translateY(0)";
         };
 
         update();
