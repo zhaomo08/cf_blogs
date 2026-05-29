@@ -52,8 +52,7 @@ const tagCloud = [...tagCountMap.entries()]
     const ratio = count / maxTagCount;
     const jitter = [0.06, 0.02, -0.03, -0.06][index % 4];
     const size = Math.max(0.92, Math.min(1.65, 0.95 + ratio * 0.65 + jitter));
-    const delay = (index % 7) * 0.18;
-    return { tag, count, size: Number(size.toFixed(2)), delay: Number(delay.toFixed(2)) };
+    return { tag, count, size: Number(size.toFixed(2)) };
   });
 
 const tagGroups = tagCloud.map((item) => ({
@@ -83,7 +82,7 @@ const tagGroups = tagCloud.map((item) => ({
               type="button"
               class="tag-float"
               data-tag={item.tag}
-              style={`font-size:${item.size}rem;animation-delay:${item.delay}s;`}
+              style={`font-size:${item.size}rem;`}
             >
               <span>{item.tag}</span>
               <small>{item.count}</small>
@@ -207,19 +206,22 @@ const tagGroups = tagCloud.map((item) => ({
 
 <style>
   .container {
-    max-width: var(--max-width);
+    max-width: 920px;
     margin: 0 auto;
-    padding: 2rem 1rem 3rem;
+    padding: 2.4rem 1rem 3rem;
   }
   h1 {
     margin-bottom: 1.5rem;
+    font-size: 2.2rem;
+    letter-spacing: -0.035em;
   }
   .tag-browser {
     margin-top: 2rem;
-    padding: 1.1rem;
+    padding: 1.2rem;
     border: 1px solid var(--color-border);
-    border-radius: 12px;
-    background: var(--color-bg-secondary);
+    border-radius: 8px;
+    background: var(--color-surface);
+    box-shadow: 0 14px 34px rgba(50, 39, 23, 0.06);
   }
   .tag-browser-head {
     display: flex;
@@ -234,7 +236,7 @@ const tagGroups = tagCloud.map((item) => ({
   }
   .clear-tag {
     border: 1px solid var(--color-border);
-    background: var(--color-bg);
+    background: var(--color-surface);
     color: var(--color-text-muted);
     border-radius: 999px;
     padding: 0.25rem 0.7rem;
@@ -251,7 +253,7 @@ const tagGroups = tagCloud.map((item) => ({
   }
   .tag-float {
     border: 1px solid var(--color-border);
-    background: var(--color-bg);
+    background: var(--color-bg-secondary);
     color: var(--color-text);
     border-radius: 999px;
     padding: 0.34rem 0.72rem;
@@ -259,7 +261,6 @@ const tagGroups = tagCloud.map((item) => ({
     align-items: baseline;
     gap: 0.42rem;
     cursor: pointer;
-    animation: floatY 3.2s ease-in-out infinite;
     transition: transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   }
   .tag-float:hover {
@@ -274,13 +275,14 @@ const tagGroups = tagCloud.map((item) => ({
   .tag-float.active {
     border-color: var(--color-accent);
     color: var(--color-accent);
-    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    background: var(--color-accent-soft);
   }
   .tag-results {
     margin-top: 1.3rem;
     border: 1px solid var(--color-border);
-    border-radius: 12px;
+    border-radius: 8px;
     padding: 1rem 1.1rem;
+    background: var(--color-surface);
   }
   .tag-results h2 {
     margin: 0 0 0.8rem;
@@ -295,7 +297,7 @@ const tagGroups = tagCloud.map((item) => ({
   }
   .tag-results li {
     border: 1px solid var(--color-border);
-    border-radius: 9px;
+    border-radius: 8px;
     padding: 0.78rem 0.9rem;
     background: var(--color-bg-secondary);
   }
@@ -322,9 +324,10 @@ const tagGroups = tagCloud.map((item) => ({
     color: var(--color-text-muted);
     margin: 0;
   }
-  @keyframes floatY {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
-    100% { transform: translateY(0); }
+  @media (max-width: 640px) {
+    .container { padding: 1.3rem 0.85rem 2.3rem; }
+    h1 { font-size: 1.8rem; }
+    .tag-browser { padding: 1rem; }
+    .tag-float { font-size: 1rem !important; }
   }
 </style>

@@ -15,7 +15,7 @@
 - RSS 订阅（`/rss.xml`）
 - 文章地理位置地图展示（有 `location` 时显示）
 - 响应式布局
-- Decap CMS 后台写作（Markdown/富文本切换 + 预览）
+- Decap CMS 后台写作（纯 Markdown 编辑 + R2 图片上传）
 
 ## 本地开发
 ```bash
@@ -31,8 +31,8 @@ npm run dev
 - `npm run check`：Astro 检查
 
 ## 内容与路由
-- 博客内容目录：`src/content/blog/zh`
-- 单篇文章路由：`/blog/zh/<slug>`
+- 博客内容目录：`src/content/blog`
+- 单篇文章路由：`/blog/<slug>`
 - 搜索页：`/search`
 - RSS：`/rss.xml`
 - 后台：`/admin/`
@@ -57,7 +57,7 @@ location:
 ```
 
 ## 后台写作说明
-- 直接粘贴图片 URL：可在预览中看到图片
+- 直接粘贴 Markdown 图片：`![描述](https://example.com/image.jpg)`
 - 本地图片上传：点击后台右下角“上传图片到 R2”，会自动插入 Markdown 图片语法
 - 正文开头可写内联元信息（保存时自动提取）：
 
@@ -84,6 +84,7 @@ Worker 关键环境变量：
   - `ALLOWED_ORIGINS`: 允许上传请求来源（逗号分隔）
   - `ALLOWED_GITHUB_LOGINS`: 允许上传的 GitHub 用户名（逗号分隔，小写）
   - `MAX_UPLOAD_BYTES`: 上传大小上限（字节）
+  - `PUBLIC_R2_BASE_URL`: 图片公开访问基础 URL；绑定 R2 Custom Domain 后改成自定义域名，未配置时继续使用 Worker 域名
 
 ## 许可证
 MIT

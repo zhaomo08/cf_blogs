@@ -48,7 +48,7 @@ const schema = {
         {description && <p class="post-desc">{description}</p>}
         {tags.length > 0 && (
           <div class="tags">
-            {tags.map(tag => <span class="tag">{tag}</span>)}
+            {tags.map(tag => <a class="tag" href={`/search?tag=${encodeURIComponent(tag)}`}>{tag}</a>)}
           </div>
         )}
       </header>
@@ -174,33 +174,39 @@ const schema = {
 )}
 
 <style>
-  .container { max-width: var(--max-width); margin: 0 auto; padding: 2rem 1rem; }
-  .post-header { margin-bottom: 1.5rem; }
+  .container { max-width: var(--content-width); margin: 0 auto; padding: 2.6rem 1rem 3rem; }
+  .post-header { margin-bottom: 1.7rem; }
   .post-date { font-size: 0.85rem; color: var(--color-text-muted); }
-  h1 { font-size: 2rem; margin: 0.5rem 0 0.75rem; }
-  .post-desc { color: var(--color-text-muted); margin: 0 0 1rem; }
+  h1 {
+    font-size: 2.45rem;
+    line-height: 1.16;
+    letter-spacing: -0.04em;
+    margin: 0.55rem 0 0.8rem;
+  }
+  .post-desc { color: var(--color-text-muted); margin: 0 0 1rem; font-size: 1.04rem; line-height: 1.75; }
   .tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
   .tag {
-    background: var(--color-bg-secondary);
+    background: var(--color-accent-soft);
     border: 1px solid var(--color-border);
-    border-radius: 4px;
-    padding: 2px 8px;
+    border-radius: 999px;
+    padding: 3px 10px;
     font-size: 0.8rem;
-    color: var(--color-text-muted);
+    color: var(--color-accent);
   }
+  .tag:hover { text-decoration: none; border-color: var(--color-accent); }
   .cover {
     width: 100%;
-    border-radius: 10px;
+    border-radius: 8px;
     margin: 1.5rem 0;
     max-height: 500px;
     aspect-ratio: 16 / 9;
     object-fit: cover;
   }
-  .prose { line-height: 1.85; font-size: 1.0625rem; }
+  .prose { line-height: 1.9; font-size: 1.0625rem; }
   .prose h2 { font-size: 1.4rem; margin: 2.2rem 0 0.9rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--color-border); }
   .prose h3 { font-size: 1.15rem; margin: 1.5rem 0 0.5rem; }
   .prose p { margin: 0 0 1rem; }
-  .prose img { border-radius: 12px; margin: 1.25rem 0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+  .prose img { border-radius: 8px; margin: 1.25rem 0; box-shadow: 0 10px 28px rgba(50, 39, 23, 0.08); }
   .prose blockquote {
     border-left: 3px solid var(--color-accent);
     background: var(--color-bg-secondary);
@@ -213,7 +219,7 @@ const schema = {
   .prose :not(pre) > code { font-size: 0.92em; }
   .post-location { margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--color-border); }
   .location-title { font-size: 1rem; margin-bottom: 0.75rem; color: var(--color-text-muted); font-weight: 600; }
-  .location-map { height: 280px; border-radius: 10px; border: 1px solid var(--color-border); overflow: hidden; }
+  .location-map { height: 280px; border-radius: 8px; border: 1px solid var(--color-border); overflow: hidden; }
   .post-nav {
     display: flex;
     justify-content: space-between;
@@ -239,7 +245,7 @@ const schema = {
       margin-left: 0;
       padding: 0.65rem 0.8rem;
       border: 1px solid var(--color-border);
-      border-radius: 10px;
+      border-radius: 8px;
       background: var(--color-bg-secondary);
     }
     .location-map { height: 220px; }

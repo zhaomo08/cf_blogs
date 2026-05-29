@@ -70,12 +70,20 @@
     #nc-root [role="textbox"] {
       min-height: min(62vh, 760px);
     }
+    #nc-root textarea {
+      min-height: min(62vh, 760px) !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace !important;
+      line-height: 1.7 !important;
+    }
     @media (max-width: 960px) {
       #nc-root [class*="EditorControlPane"] {
         padding-bottom: 92px;
       }
       #nc-root [role="textbox"] {
         min-height: min(52vh, 620px);
+      }
+      #nc-root textarea {
+        min-height: min(52vh, 620px) !important;
       }
     }
   </style>
@@ -537,45 +545,6 @@
         if (viewport) viewport.addEventListener("resize", update);
       }
 
-      function setupMobileEditorMode() {
-        if (!window.matchMedia('(max-width: 720px)').matches) return;
-        const FLAG_KEY = 'cf_blogs_mobile_md_applied_v1';
-        try {
-          if (localStorage.getItem(FLAG_KEY)) return;
-        } catch (_) {}
-
-        function findRichTextSwitchButton() {
-          const buttons = Array.from(document.querySelectorAll('button, [role="button"]'));
-          return buttons.find((btn) => {
-            const text = (btn.textContent || '').trim().toLowerCase();
-            return text === 'markdown' || text === '原文' || text === 'raw' || text === '源代码';
-          });
-        }
-
-        function isOnEntryPage() {
-          const hash = window.location.hash || '';
-          return /#\/collections\/blog\/(new|entries\/)/.test(hash);
-        }
-
-        let attempts = 0;
-        const maxAttempts = 30;
-        const observer = new MutationObserver(() => {
-          if (!isOnEntryPage()) return;
-          attempts += 1;
-          if (attempts > maxAttempts) {
-            observer.disconnect();
-            return;
-          }
-          const btn = findRichTextSwitchButton();
-          if (!btn) return;
-          btn.click();
-          try { localStorage.setItem(FLAG_KEY, '1'); } catch (_) {}
-          observer.disconnect();
-        });
-
-        observer.observe(document.body, { childList: true, subtree: true });
-      }
-
       CMS.registerEventListener({
         name: "preSave",
         handler: ({ entry }) => {
@@ -625,7 +594,6 @@
 
       setupAutoLocation();
       setupMobileToolVisibility();
-      setupMobileEditorMode();
       document.getElementById("btn-r2-upload").addEventListener("click", handleR2Upload);
       setInterval(simplifyChrome, 800);
     })();

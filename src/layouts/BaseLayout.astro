@@ -22,8 +22,8 @@ const siteName = 'My Blog';
     <link rel="preconnect" href="https://cf-blogs-r2.zhaomo0823.workers.dev" crossorigin />
     <link rel="dns-prefetch" href="https://cf-blogs-r2.zhaomo0823.workers.dev" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#0066cc" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#5ba3ff" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#fbfaf7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#14120f" media="(prefers-color-scheme: dark)" />
     <title>{title} | {siteName}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalURL} />
@@ -38,7 +38,7 @@ const siteName = 'My Blog';
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     {image && <meta name="twitter:image" content={image} />}
-    {schema && <script type="application/ld+json" set:html={JSON.stringify(schema).replace(/<\//g, '<\\/')} />}
+    {schema && <script is:inline type="application/ld+json" set:html={JSON.stringify(schema).replace(/<\//g, '<\\/')} />}
     <slot name="head" />
     <script is:inline>
       const saved = localStorage.getItem('theme');

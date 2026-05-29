@@ -50,6 +50,18 @@ function jsonResponse(body, status, corsHeaders) {
   });
 }
 
+function normalizePublicBaseUrl(value, fallbackOrigin) {
+  const raw = String(value || '').trim().replace(/\/+$/, '');
+  if (!raw) return fallbackOrigin;
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return parsed.toString().replace(/\/+$/, '');
+    }
+  } catch (_) {}
+  return fallbackOrigin;
+}
+
 function sanitizeFileName(name) {
   return String(name || '')
     .replace(/[^\w.-]/g, '_')
@@ -131,16 +143,29 @@ export default {
     if (request.method === 'GET' && path.startsWith('/images/')) {
       const key = path.slice(1);
       try {
+        const cache = caches.default;
+        const cacheKey = new Request(url.toString(), request);
+        const cached = await cache.match(cacheKey);
+        if (cached) return cached;
+
         const object = await env.R2_BUCKET.get(key);
         if (!object) {
-          return new Response('Image not found', { status: 404, headers: corsHeaders });
+          return new Response('Image not found', {
+            status: 404,
+            headers: {
+              ...corsHeaders,
+              'Cache-Control': 'public, max-age=60',
+            },
+          });
         }
 
         const headers = new Headers(corsHeaders);
         object.writeHttpMetadata(headers);
         headers.set('etag', object.httpEtag);
-        headers.set('Cache-Control', 'public, max-age=31536000');
-        return new Response(object.body, { headers });
+        headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+        const response = new Response(object.body, { headers });
+        await cache.put(cacheKey, response.clone());
+        return response;
       } catch (error) {
         return new Response('Error fetching image: ' + String(error?.message || error), {
           status: 500,
@@ -193,7 +218,8 @@ export default {
           },
         });
 
-        const imageUrl = `${url.origin}/${key}`;
+        const publicBaseUrl = normalizePublicBaseUrl(env.PUBLIC_R2_BASE_URL, url.origin);
+        const imageUrl = `${publicBaseUrl}/${key}`;
         return jsonResponse({ url: imageUrl, by: auth.login }, 200, corsHeaders);
       } catch (error) {
         return jsonResponse({ error: 'Upload error: ' + String(error?.message || error) }, 500, corsHeaders);
