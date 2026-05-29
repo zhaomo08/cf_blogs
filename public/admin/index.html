@@ -227,6 +227,38 @@
     body.cf-blog-entry [data-cf-field="description"]::before { content: "Description"; }
     body.cf-blog-entry [data-cf-field="tags"]::before { content: "Tags"; }
     body.cf-blog-entry [data-cf-field="cover"]::before { content: "Cover"; }
+    body.cf-blog-entry .cf-cover-preview {
+      display: none;
+      margin-top: 10px;
+      overflow: hidden;
+      border: 1px solid #ded6ca;
+      border-radius: 10px;
+      background: #f8f4ed;
+    }
+    body.cf-blog-entry .cf-cover-preview.is-visible {
+      display: block;
+    }
+    body.cf-blog-entry .cf-cover-preview img {
+      width: 100%;
+      max-height: 180px;
+      display: block;
+      object-fit: cover;
+      background: #f3eee6;
+    }
+    body.cf-blog-entry .cf-cover-preview span {
+      display: block;
+      padding: 8px 10px;
+      color: #716b61;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    body.cf-blog-entry .cf-autosave-status {
+      grid-column: 1 / -1;
+      color: #716b61;
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: right;
+    }
     body.cf-blog-entry .cf-editor-tip {
       grid-column: 1;
       margin-top: -6px;
@@ -321,6 +353,7 @@
   <script>
     (function () {
       const LOCATION_CACHE_KEY = "cf_blogs_auto_location_v1";
+      const ENTRY_DRAFT_PREFIX = "cf_blogs_entry_draft_v2:";
       const CMS_AUTH_STORAGE_KEYS = ["netlify-cms-user", "decap-cms-user"];
       let currentAutoLocation = null;
       let baseViewportHeight = 0;
@@ -855,17 +888,181 @@
           }) || null;
         }
 
+        function getDraftKey() {
+          const hash = window.location.hash || "#/";
+          return ENTRY_DRAFT_PREFIX + encodeURIComponent(hash);
+        }
+
+        function getControl(field) {
+          if (!field) return null;
+          const controls = Array.from(
+            field.querySelectorAll("textarea, input[type='text'], input[type='url'], input[type='search'], input:not([type]), [contenteditable='true'], [role='textbox']")
+          ).filter(isVisible);
+          return controls.length ? controls[controls.length - 1] : null;
+        }
+
+        function readControlValue(control) {
+          if (!control) return "";
+          if (control.isContentEditable) return control.textContent || "";
+          if ("value" in control) return control.value || "";
+          return "";
+        }
+
+        function setControlValue(control, value) {
+          if (!control) return;
+          const nextValue = String(value || "");
+          if (control.isContentEditable) {
+            control.textContent = nextValue;
+          } else if ("value" in control) {
+            const proto = control instanceof HTMLTextAreaElement
+              ? HTMLTextAreaElement.prototype
+              : HTMLInputElement.prototype;
+            const setter = Object.getOwnPropertyDescriptor(proto, "value")?.set;
+            if (setter) setter.call(control, nextValue);
+            else control.value = nextValue;
+          }
+          control.dispatchEvent(new Event("input", { bubbles: true }));
+          control.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+
+        function readDraft() {
+          try {
+            const raw = localStorage.getItem(getDraftKey());
+            return raw ? JSON.parse(raw) : null;
+          } catch (_) {
+            return null;
+          }
+        }
+
+        function writeDraft(values) {
+          try {
+            localStorage.setItem(getDraftKey(), JSON.stringify({ values, updatedAt: Date.now() }));
+          } catch (_) {}
+        }
+
+        function clearDraft() {
+          try {
+            localStorage.removeItem(getDraftKey());
+          } catch (_) {}
+        }
+
+        function formatDraftTime(timestamp) {
+          if (!timestamp) return "";
+          try {
+            return new Date(timestamp).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
+          } catch (_) {
+            return "";
+          }
+        }
+
+        function setStatus(commonShell, text) {
+          if (!commonShell) return;
+          let status = commonShell.querySelector(".cf-autosave-status");
+          if (!status) {
+            status = document.createElement("div");
+            status.className = "cf-autosave-status";
+            commonShell.appendChild(status);
+          }
+          status.textContent = text;
+        }
+
+        function setupCoverPreview(coverField) {
+          if (!coverField || coverField.dataset.cfPreviewReady === "true") return;
+          const input = getControl(coverField);
+          if (!input) return;
+
+          coverField.dataset.cfPreviewReady = "true";
+          const preview = document.createElement("div");
+          preview.className = "cf-cover-preview";
+          preview.innerHTML = "<img alt=\"封面预览\" loading=\"lazy\" decoding=\"async\" /><span>封面预览</span>";
+          coverField.appendChild(preview);
+          const img = preview.querySelector("img");
+          const caption = preview.querySelector("span");
+
+          function update() {
+            const value = readControlValue(input).trim();
+            const valid = /^https?:\/\/\S+$/i.test(value);
+            preview.classList.toggle("is-visible", valid);
+            if (!valid) {
+              img.removeAttribute("src");
+              return;
+            }
+            img.src = value;
+            caption.textContent = "封面预览";
+          }
+
+          img.addEventListener("error", () => {
+            caption.textContent = "图片暂时无法预览，但链接仍会保存。";
+          });
+          input.addEventListener("input", update);
+          input.addEventListener("change", update);
+          update();
+        }
+
+        function setupEntryAutosave(fieldMap, commonShell) {
+          if (!commonShell || commonShell.dataset.cfAutosaveReady === "true") return;
+          commonShell.dataset.cfAutosaveReady = "true";
+
+          const keys = ["title", "description", "body", "tags", "cover"];
+          const controls = {};
+          keys.forEach((key) => {
+            controls[key] = getControl(fieldMap[key]);
+          });
+
+          const draft = readDraft();
+          if (draft && draft.values) {
+            keys.forEach((key) => {
+              if (controls[key] && typeof draft.values[key] === "string") {
+                setControlValue(controls[key], draft.values[key]);
+              }
+            });
+            setStatus(commonShell, `已恢复本地草稿 ${formatDraftTime(draft.updatedAt)}`);
+          } else {
+            setStatus(commonShell, "本地自动保存已开启，刷新页面不会丢失未发布内容。");
+          }
+
+          let timer = null;
+          function collect() {
+            const values = {};
+            keys.forEach((key) => {
+              values[key] = readControlValue(controls[key]);
+            });
+            return values;
+          }
+
+          function scheduleSave() {
+            window.clearTimeout(timer);
+            timer = window.setTimeout(() => {
+              writeDraft(collect());
+              setStatus(commonShell, `已自动保存 ${formatDraftTime(Date.now())}`);
+            }, 350);
+          }
+
+          keys.forEach((key) => {
+            const control = controls[key];
+            if (!control) return;
+            control.addEventListener("input", scheduleSave);
+            control.addEventListener("change", scheduleSave);
+          });
+
+          window.addEventListener("beforeunload", () => {
+            writeDraft(collect());
+          });
+        }
+
         function applyLayout() {
           document.body.classList.toggle("cf-blog-entry", isEntryPage());
           if (!isEntryPage()) return;
 
           const fields = [];
+          const fieldMap = {};
           FIELD_LABELS.forEach(({ key, labels }) => {
             const labelNode = findLabelNode(labels);
             const shell = labelNode ? findFieldShell(labelNode) : null;
             if (!shell) return;
             shell.setAttribute("data-cf-field", key);
             fields.push(shell);
+            fieldMap[key] = shell;
           });
 
           const commonShell = findCommonShell(fields);
@@ -880,6 +1077,9 @@
             tip.textContent = "写作区保持纯 Markdown：图片用 ![描述](URL)；摘要在标题下方填写，封面和标签在右侧填写；发布时间会在保存/发布时自动使用当前时间。";
             commonShell.insertBefore(tip, bodyField.nextSibling);
           }
+
+          setupCoverPreview(fieldMap.cover);
+          setupEntryAutosave(fieldMap, commonShell);
         }
 
         const observer = new MutationObserver(() => {
@@ -934,6 +1134,15 @@
           }
 
           return next;
+        },
+      });
+      CMS.registerEventListener({
+        name: "postSave",
+        handler: () => {
+          try {
+            localStorage.removeItem(ENTRY_DRAFT_PREFIX + encodeURIComponent(window.location.hash || "#/"));
+            localStorage.removeItem(ENTRY_DRAFT_PREFIX + encodeURIComponent("#/collections/blog/new"));
+          } catch (_) {}
         },
       });
 
